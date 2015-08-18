@@ -1,0 +1,14 @@
+{
+  "name": "cerialize",
+  "description": "Easy serialization throught ES7/Typescript annotations",
+  "keywords": ["serialize", "typescript", "es7", "annotations", "decoration", "decorators"],
+  "author": "Matt Weichselbaum",
+  "license": "MIT",
+  "repository": "https://github.com/weichx/serial",
+  "version": "0.0.1",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jasmine": "^2.0.1",
+    "gulp-tsc": "^1.1.0"
+  }
+}
