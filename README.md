@@ -53,7 +53,7 @@ var json = Serialize(person);
     birthdate: 'Wed May 03 1989 00:00:00 GMT-0400 (EDT)', 
     favorite_hobby: 'coding', 
     'favorite_pet': { 
-      Name: 'Snuffles', 
+      Name: 'Cracker', 
       type: 'Cat',
       hobby: 'laser pointers'
     } 
