@@ -77,6 +77,7 @@ function getTypeAndKeyName(keyNameOrType : string|Function|ISerializable, keyNam
     return { key: key, type: type };
 }
 
+//todo instance.constructor.prototype.__proto__ === parent class, maybe use this?
 export function inheritSerialization(parentType : Function) : any {
     return function (childType : Function) {
         var parentMetaData : Array<MetaData> = TypeMap.get(parentType) || [];
