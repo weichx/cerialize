@@ -211,7 +211,7 @@ function deserializeArrayInto(source : Array<any>, type : Function, arrayInstanc
 function deserializeObjectInto(json : any, type : Function, instance : any) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
 
-    if (!instance) {
+    if (instance === null || instance === void 0) {
         instance = type ? new (<any> type)() : {};
     }
 
