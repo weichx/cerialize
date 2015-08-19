@@ -4,7 +4,7 @@
   "keywords": ["serialize", "typescript", "es7", "annotations", "decoration", "decorators"],
   "author": "Matt Weichselbaum",
   "license": "MIT",
-  "repository": "https://github.com/weichx/serial",
+  "repository": "https://github.com/weichx/cerialize",
   "version": "0.0.1",
   "main": "dist/serialize.js",
   "devDependencies": {
