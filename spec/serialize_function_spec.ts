@@ -96,7 +96,7 @@ describe('Serialize', function () {
 
     it('should serialize a typed object', function() {
         var test = new Vector3(1, 2);
-        var serialized = Serialize(test, Vector3);
+        var serialized = Serialize(test);
         expect((serialized instanceof Vector3)).toBe(false);
         expect(serialized.x).toBe(test.x);
         expect(serialized.y).toBe(test.y);
@@ -105,7 +105,7 @@ describe('Serialize', function () {
 
     it('should serialize a typed object with a typed array', function() {
         var test = new TArray(10, 11, [new Vector3(1,2), new Vector3(2, 1)]);
-        var serialized = Serialize(test, TArray);
+        var serialized = Serialize(test);
         expect(serialized.points).toBeDefined();
         expect(Array.isArray(serialized.points)).toBe(true);
         expect(serialized.points.length).toBe(2);
@@ -122,7 +122,7 @@ describe('Serialize', function () {
 
     it('should serialize a typed object with typed subobjects', function() {
         var test = new TSubObject();
-        var serialized = Serialize(test, TSubObject);
+        var serialized = Serialize(test);
         expect(serialized.specialKey).toBeDefined();
         expect(serialized.specialKey.x).toBe(1);
         expect(serialized.specialKey.y).toBe(2);

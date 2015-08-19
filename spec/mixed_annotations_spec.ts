@@ -42,7 +42,7 @@ describe('Mixed annotations', function() {
         var json = {'_X_': 10};
         var instance = new T2();
         instance.x = 20;
-        var serialized = Serialize(instance, T2);
+        var serialized = Serialize(instance);
         var deserialized = Deserialize(json, T2);
         expect(serialized.X).toBe(20);
         expect(serialized.x).toBeUndefined();
@@ -55,7 +55,7 @@ describe('Mixed annotations', function() {
         var instance = new T3();
         instance.t = new T();
         instance.t.x = 20;
-        var serialized = Serialize(instance, T3);
+        var serialized = Serialize(instance);
         var deserialized = Deserialize(json, T3);
         expect(serialized.t.x).toBe(20);
         expect(serialized.x).toBeUndefined();

@@ -30,7 +30,7 @@ describe('Inherit Serialization', function() {
         instance.x = 1;
         instance.y = 2;
         instance.z = 3;
-        var result = Serialize(instance, ExtendedT);
+        var result = Serialize(instance);
         expect(result.x).toBe(1);
         expect(result.Y).toBe(2);
         expect(result.z).toBe(3);
