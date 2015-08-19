@@ -77,8 +77,8 @@ function getTypeAndKeyName(keyNameOrType : string|Function|ISerializable, keyNam
     return { key: key, type: type };
 }
 
-export function inheritSerialization(childType : Function) : any {
-    return function (parentType : Function) {
+export function inheritSerialization(parentType : Function) : any {
+    return function (childType : Function) {
         var parentMetaData : Array<MetaData> = TypeMap.get(parentType) || [];
         var childMetaData : Array<MetaData> = TypeMap.get(childType) || [];
         for (var i = 0; i < parentMetaData.length; i++) {
@@ -434,13 +434,10 @@ export function Serialize(instance : any) : any {
         var keys = Object.keys(instance);
         var json : any = {};
         for (var i = 0; i < keys.length; i++) {
+            //todo this probably needs a key transform
             json[keys[i]] = Serialize(instance[keys[i]]);
         }
         return json;
-    }
-
-    if (instance === void 0) {
-        return null;
     }
 
     return instance;
