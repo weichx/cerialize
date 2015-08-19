@@ -61,6 +61,14 @@ describe('Serialize', function () {
         expect(Serialize(reg)).toBe(reg.toString());
     });
 
+    it('should serialize 0', function() {
+        expect(Serialize(0)).toBe(0);
+    });
+
+    it('should serialize false', function() {
+        expect(Serialize(false)).toBe(false);
+    });
+
     it('should seralize an untyped object', function () {
         var obj = { one: 1, yep: true, now: new Date() };
         var serialized = Serialize(obj);

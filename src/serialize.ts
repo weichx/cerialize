@@ -416,7 +416,7 @@ function serializeTypedObject(instance : any) : any {
 }
 
 export function Serialize(instance : any) : any {
-    if (!instance) return null;
+    if (instance === null || instance === void 0) return null;
 
     if (Array.isArray(instance)) {
         return serializeArray(instance);
@@ -446,6 +446,7 @@ export function Serialize(instance : any) : any {
     return instance;
 }
 
+//todo finish documenting!
 //todo further test ISerializable
 //todo null check for type in deserialize
 //todo if serializedType is provided, treat it as an override for instance.constructor
