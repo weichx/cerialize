@@ -21,7 +21,7 @@ export declare function CamelCase(str: string): string;
 export declare function SnakeCase(str: string): string;
 export declare function UnderscoreCase(str: string): string;
 export declare function DashCase(str: string): string;
-export declare function inheritSerialization(childType: Function): any;
+export declare function inheritSerialization(parentType: Function): any;
 export declare function serialize(target: any, keyName: string): any;
 export declare function deserialize(target: any, keyName: string): any;
 export declare function autoserialize(target: any, keyName: string): any;

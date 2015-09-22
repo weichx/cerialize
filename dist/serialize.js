@@ -52,8 +52,9 @@ function getTypeAndKeyName(keyNameOrType, keyName) {
     }
     return { key: key, type: type };
 }
-function inheritSerialization(childType) {
-    return function (parentType) {
+//todo instance.constructor.prototype.__proto__ === parent class, maybe use this?
+function inheritSerialization(parentType) {
+    return function (childType) {
         var parentMetaData = TypeMap.get(parentType) || [];
         var childMetaData = TypeMap.get(childType) || [];
         for (var i = 0; i < parentMetaData.length; i++) {
@@ -227,7 +228,7 @@ function deserializeObjectInto(json, type, instance) {
         }
     }
     if (type && typeof type.OnDeserialized === "function") {
-        type.OnDeserialized(instance, source);
+        type.OnDeserialized(instance, json);
     }
     return instance;
 }
@@ -368,12 +369,10 @@ function Serialize(instance) {
         var keys = Object.keys(instance);
         var json = {};
         for (var i = 0; i < keys.length; i++) {
+            //todo this probably needs a key transform
             json[keys[i]] = Serialize(instance[keys[i]]);
         }
         return json;
-    }
-    if (instance === void 0) {
-        return null;
     }
     return instance;
 }
