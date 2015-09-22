@@ -265,7 +265,7 @@ function deserializeObjectInto(json : any, type : Function, instance : any) : an
     }
 
     if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, source);
+        (<any>type).OnDeserialized(instance, json);
     }
 
     return instance;
