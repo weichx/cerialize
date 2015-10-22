@@ -16,7 +16,7 @@ export interface MapConstructor {
 
 declare var Map : MapConstructor;
 
-var TypeMap = new Map();
+var TypeMap = (<any>window).__CerializeTypeMap = new Map();
 
 export interface ISerializable {
     Serialize?: (value : any) => any;
