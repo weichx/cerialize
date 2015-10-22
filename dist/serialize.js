@@ -1,4 +1,4 @@
-var TypeMap = new Map();
+var TypeMap = window.__CerializeTypeMap = new Map();
 exports.__TypeMap = TypeMap;
 //convert strings like my_camel_string to myCamelString
 function CamelCase(str) {
