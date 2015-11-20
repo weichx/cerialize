@@ -220,6 +220,9 @@ function deserializeObjectInto(json, type, instance) {
         else if (typeof source === "string" && type === RegExp) {
             instance[keyName] = new RegExp(source);
         }
+        else if (typeof source === "string" && typeof metadata.deserializedType === "function") {
+            instance[keyName] = new metadata.deserializedType(source);
+        }
         else if (source && typeof source === "object") {
             instance[keyName] = deserializeObjectInto(source, metadata.deserializedType, instance[keyName]);
         }
@@ -281,6 +284,9 @@ function deserializeObject(json, type) {
         }
         else if (typeof json === "string" && type === RegExp) {
             instance[metadata.keyName] = new RegExp(json);
+        }
+        else if (typeof source === "string" && typeof metadata.deserializedType === "function") {
+            instance[metadata.keyName] = new metadata.deserializedType(source);
         }
         else if (source && typeof source === "object") {
             instance[metadata.keyName] = deserializeObject(source, metadata.deserializedType);
