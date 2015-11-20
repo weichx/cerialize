@@ -256,7 +256,7 @@ function deserializeObjectInto(json : any, type : Function, instance : any) : an
         else if (typeof source === "string" && type === RegExp) {
             instance[keyName] = new RegExp(source);
         }
-        else if (typeof source === "string" && typeof metadata.deserializedType === "function") {
+        else if (typeof source === "string" && metadata.deserializedType !== String && typeof metadata.deserializedType === "function") {
           instance[keyName] = new (<any>metadata.deserializedType)(source);
         }
         else if (source && typeof source === "object") {
@@ -332,7 +332,7 @@ function deserializeObject(json : any, type : Function) : any {
         else if (typeof json === "string" && type === RegExp) {
             instance[metadata.keyName] = new RegExp(json);
         }
-        else if (typeof source === "string" && typeof metadata.deserializedType === "function") {
+        else if (typeof source === "string" && metadata.deserializedType !== String && typeof metadata.deserializedType === "function") {
           instance[metadata.keyName] = new (<any>metadata.deserializedType)(source);
         }
         else if (source && typeof source === "object") {
