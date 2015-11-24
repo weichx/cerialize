@@ -34,6 +34,29 @@ class T4 {
     @autoserializeAs(Date) public date : Date;
 }
 
+class JsonTest {
+    @deserialize public obj : any;
+
+    constructor() {
+        this.obj = {
+            key1: 1,
+            nestedKey: {
+                key2: 2
+            }
+        }
+    }
+}
+
+var CustomDeserializer = {
+    Deserialize: function (src : any) : any {
+        return 'custom!';
+    }
+};
+
+class CustomDeserialized {
+    @deserializeAs(CustomDeserializer) public x : string;
+}
+
 describe('DeserializeInto', function () {
     it('should return the same instance passed to it', function () {
         var instance = new T1();
@@ -114,7 +137,7 @@ describe('DeserializeInto', function () {
         expect(originalList[2].y).toBe(void 0);
     });
 
-    it('will deserialize an object with nested deserialized properties', function() {
+    it('will deserialize an object with nested deserialized properties', function () {
         var instance = new T4();
         instance.t3 = new T3([]);
         var d = new Date();
@@ -122,7 +145,7 @@ describe('DeserializeInto', function () {
         var json = {
             date: new Date().toString(),
             T3: {
-                list: [{x: 1}, {x: 2}]
+                list: [{ x: 1 }, { x: 2 }]
             }
         };
         var result = DeserializeInto(json, T4, instance);
@@ -130,4 +153,28 @@ describe('DeserializeInto', function () {
         expect(result.date).toBe(d);
     });
 
+    xit('should deserialize js objects tagged with deserialize', function () {
+        var testJson = new JsonTest();
+        var result = DeserializeInto({
+            obj: {
+                key1: 2,
+                nestedKey: {
+                    key2: 3
+                }
+            }
+        }, JsonTest, testJson);
+        expect(result).toBeDefined();
+        expect(typeof result.obj === "object").toBeTruthy();
+        expect(result.obj.key1).toBe(2);
+        expect(result.obj.nestedKey.key2).toBe(3);
+    });
+
+    it('should deserialize with a custom deserializer', function() {
+       var testJson = {
+           "x": new Date().toString()
+       };
+        var result = DeserializeInto(testJson, CustomDeserialized, null);
+        expect(result.x).toBe("custom!");
+    });
 });
+

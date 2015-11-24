@@ -14,9 +14,19 @@ export interface MapConstructor {
     prototype: Map<any, any>;
 }
 
+declare var global : any;
 declare var Map : MapConstructor;
+var win : any = null;
+try {
+    win = window;
+}
+catch (e) {
+    win = global;
+}
+var TypeMap = win.__CerializeTypeMap = new Map();
 
-var TypeMap = (<any>window).__CerializeTypeMap = new Map();
+export type Serializer = (value : any) => any;
+export type Deserializer = (value : any) => any;
 
 export interface ISerializable {
     Serialize?: (value : any) => any;
@@ -44,7 +54,7 @@ export function UnderscoreCase(str : string) : string {
     var STRING_UNDERSCORE_REGEXP_1 = (/([a-z\d])([A-Z]+)/g);
     var STRING_UNDERSCORE_REGEXP_2 = (/\-|\s+/g);
     return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').
-        replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
+    replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
 }
 
 //convert strings like my_camelCase to my-camel-case
@@ -118,7 +128,7 @@ export function autoserialize(target : any, keyName : string) : any {
 }
 
 //We dont actually need the type to serialize but I like the consistency with deserializeAs which definitely does
-export function serializeAs(keyNameOrType : string|Function|ISerializable, keyName? : string) : any {
+export function serializeAs(keyNameOrType : string|Serializer|ISerializable, keyName? : string) : any {
     if (!keyNameOrType) return;
     var { key, type } = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
@@ -127,6 +137,11 @@ export function serializeAs(keyNameOrType : string|Function|ISerializable, keyNa
         var metadata = getMetaData(metaDataList, actualKeyName);
         metadata.serializedKey = (key) ? key : actualKeyName;
         metadata.serializedType = type;
+        if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
+            metadata.serializedType = <ISerializable>{
+                Serialize: <Serializer>type
+            };
+        }
         TypeMap.set(target.constructor, metaDataList);
     };
 }
@@ -140,6 +155,11 @@ export function deserializeAs(keyNameOrType : string|Function|ISerializable, key
         var metadata = getMetaData(metaDataList, actualKeyName);
         metadata.deserializedKey = (key) ? key : actualKeyName;
         metadata.deserializedType = type;
+        if (!TypeMap.get(type) && type !== Date && type !== RegExp &&typeof type === "function") {
+            metadata.deserializedType = <ISerializable>{
+                Deserialize: <Deserializer>type
+            };
+        }
         TypeMap.set(target.constructor, metaDataList);
     };
 }
@@ -165,8 +185,8 @@ class MetaData {
     public keyName : string;
     public serializedKey : string;
     public deserializedKey : string;
-    public serializedType : Function;
-    public deserializedType : Function;
+    public serializedType : Function|ISerializable;
+    public deserializedType : Function|ISerializable;
     public inheritedType : Function;
 
     constructor(keyName : string) {
@@ -195,7 +215,29 @@ class MetaData {
     }
 }
 
-function deserializeArrayInto(source : Array<any>, type : Function, arrayInstance : any) : Array<any> {
+function mergePrimitiveObjects(instance : any, json : any) : any {
+    if (!json) return instance;
+    Object.keys(json).forEach(function (key : string) {
+        var value = json[key];
+        if (Array.isArray(value)) {
+
+        }
+        else if (value && typeof value === "object") {
+
+        }
+        else {
+            var transformedKey = key;
+            if (typeof deserializeKeyTransform === "function") {
+                transformedKey = deserializeKeyTransform(key);
+            }
+            instance[transformedKey] = json[key];
+        }
+        instance[key] = mergePrimitiveObjects(instance[key], value);
+    });
+    return instance;
+}
+
+function deserializeArrayInto(source : Array<any>, type : Function|ISerializable, arrayInstance : any) : Array<any> {
     if (!Array.isArray(arrayInstance)) {
         arrayInstance = new Array<any>(source.length);
     }
@@ -209,11 +251,19 @@ function deserializeArrayInto(source : Array<any>, type : Function, arrayInstanc
     return arrayInstance;
 }
 
-function deserializeObjectInto(json : any, type : Function, instance : any) : any {
+function deserializeObjectInto(json : any, type : Function|ISerializable, instance : any) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
-
     if (instance === null || instance === void 0) {
-        instance = type ? new (<any> type)() : {};
+        if (type) {
+            instance = new (<any>type)();
+        }
+
+        //instance = type ? new (<any> type)() : {};
+    }
+
+    if (instance && !type && !metadataArray) {
+        //todo fix this, it shouldn't overwrite objects
+        return JSON.parse(json.stringify(json));//mergePrimitiveObjects(instance, json);
     }
 
     if (!metadataArray) {
@@ -271,7 +321,7 @@ function deserializeObjectInto(json : any, type : Function, instance : any) : an
     return instance;
 }
 
-export function DeserializeInto(source : any, type : Function, target : any) : any {
+export function DeserializeInto(source : any, type : Function|ISerializable, target : any) : any {
     if (Array.isArray(source)) {
         return deserializeArrayInto(source, type, target || []);
     }
@@ -283,7 +333,7 @@ export function DeserializeInto(source : any, type : Function, target : any) : a
     }
 }
 
-function deserializeArray(source : Array<any>, type : Function) : Array<any> {
+function deserializeArray(source : Array<any>, type : Function|ISerializable) : Array<any> {
     var retn : Array<any> = new Array(source.length);
     for (var i = 0; i < source.length; i++) {
         retn[i] = Deserialize(source[i], type);
@@ -291,10 +341,13 @@ function deserializeArray(source : Array<any>, type : Function) : Array<any> {
     return retn;
 }
 
-function deserializeObject(json : any, type : Function) : any {
+function deserializeObject(json : any, type : Function|ISerializable) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
 
     if (!metadataArray) {
+        if (!type) {
+            return JSON.parse(JSON.stringify(json));
+        }
         return new (<any>type)();
     }
 
@@ -344,7 +397,7 @@ function deserializeObject(json : any, type : Function) : any {
     return instance;
 }
 
-export function Deserialize(json : any, type? : Function) : any {
+export function Deserialize(json : any, type? : Function|ISerializable) : any {
 
     if (Array.isArray(json)) {
         return deserializeArray(json, type);

@@ -1,4 +1,11 @@
-var TypeMap = window.__CerializeTypeMap = new Map();
+var win = null;
+try {
+    win = window;
+}
+catch (e) {
+    win = global;
+}
+var TypeMap = win.__CerializeTypeMap = new Map();
 exports.__TypeMap = TypeMap;
 //convert strings like my_camel_string to myCamelString
 function CamelCase(str) {
@@ -107,6 +114,11 @@ function serializeAs(keyNameOrType, keyName) {
         var metadata = getMetaData(metaDataList, actualKeyName);
         metadata.serializedKey = (key) ? key : actualKeyName;
         metadata.serializedType = type;
+        if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
+            metadata.serializedType = {
+                Serialize: type
+            };
+        }
         TypeMap.set(target.constructor, metaDataList);
     };
 }
@@ -122,6 +134,11 @@ function deserializeAs(keyNameOrType, keyName) {
         var metadata = getMetaData(metaDataList, actualKeyName);
         metadata.deserializedKey = (key) ? key : actualKeyName;
         metadata.deserializedType = type;
+        if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
+            metadata.deserializedType = {
+                Deserialize: type
+            };
+        }
         TypeMap.set(target.constructor, metaDataList);
     };
 }
@@ -170,6 +187,26 @@ var MetaData = (function () {
     };
     return MetaData;
 })();
+function mergePrimitiveObjects(instance, json) {
+    if (!json)
+        return instance;
+    Object.keys(json).forEach(function (key) {
+        var value = json[key];
+        if (Array.isArray(value)) {
+        }
+        else if (value && typeof value === "object") {
+        }
+        else {
+            var transformedKey = key;
+            if (typeof deserializeKeyTransform === "function") {
+                transformedKey = deserializeKeyTransform(key);
+            }
+            instance[transformedKey] = json[key];
+        }
+        instance[key] = mergePrimitiveObjects(instance[key], value);
+    });
+    return instance;
+}
 function deserializeArrayInto(source, type, arrayInstance) {
     if (!Array.isArray(arrayInstance)) {
         arrayInstance = new Array(source.length);
@@ -183,7 +220,13 @@ function deserializeArrayInto(source, type, arrayInstance) {
 function deserializeObjectInto(json, type, instance) {
     var metadataArray = TypeMap.get(type);
     if (instance === null || instance === void 0) {
-        instance = type ? new type() : {};
+        if (type) {
+            instance = new type();
+        }
+    }
+    if (instance && !type && !metadataArray) {
+        //todo fix this, it shouldn't overwrite objects
+        return JSON.parse(json.stringify(json)); //mergePrimitiveObjects(instance, json);
     }
     if (!metadataArray) {
         return instance;
@@ -254,6 +297,9 @@ function deserializeArray(source, type) {
 function deserializeObject(json, type) {
     var metadataArray = TypeMap.get(type);
     if (!metadataArray) {
+        if (!type) {
+            return JSON.parse(JSON.stringify(json));
+        }
         return new type();
     }
     var instance = new type();

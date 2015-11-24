@@ -42,6 +42,22 @@ class TSubObject {
     }
 }
 
+var SerializeFn = function (src : string) : string {
+    return 'custom!';
+};
+
+var CustomerSerialized = {
+    Serialize: SerializeFn
+};
+
+class CustomSerializedTest {
+    @serializeAs(CustomerSerialized) public x : string;
+}
+
+class CustomSerializedTest2 {
+    @serializeAs(SerializeFn) public x : string;
+}
+
 describe('Serialize', function () {
     it('should serialize a primitive', function () {
         expect(Serialize(5)).toBe(5);
@@ -61,11 +77,11 @@ describe('Serialize', function () {
         expect(Serialize(reg)).toBe(reg.toString());
     });
 
-    it('should serialize 0', function() {
+    it('should serialize 0', function () {
         expect(Serialize(0)).toBe(0);
     });
 
-    it('should serialize false', function() {
+    it('should serialize false', function () {
         expect(Serialize(false)).toBe(false);
     });
 
@@ -90,7 +106,7 @@ describe('Serialize', function () {
     });
 
     it('should serialize an untyped array', function () {
-        var array = [{one: 1}, {two: 2}, {three: 3}];
+        var array = [{ one: 1 }, { two: 2 }, { three: 3 }];
         var serialized = Serialize(array);
         expect(Array.isArray(serialized)).toBe(true);
         expect(serialized.length).toBe(3);
@@ -102,7 +118,7 @@ describe('Serialize', function () {
         expect(serialized[2].three).toBe(3);
     });
 
-    it('should serialize a typed object', function() {
+    it('should serialize a typed object', function () {
         var test = new Vector3(1, 2);
         var serialized = Serialize(test);
         expect((serialized instanceof Vector3)).toBe(false);
@@ -111,8 +127,8 @@ describe('Serialize', function () {
         expect(serialized.z).toBe(void 0);
     });
 
-    it('should serialize a typed object with a typed array', function() {
-        var test = new TArray(10, 11, [new Vector3(1,2), new Vector3(2, 1)]);
+    it('should serialize a typed object with a typed array', function () {
+        var test = new TArray(10, 11, [new Vector3(1, 2), new Vector3(2, 1)]);
         var serialized = Serialize(test);
         expect(serialized.points).toBeDefined();
         expect(Array.isArray(serialized.points)).toBe(true);
@@ -128,7 +144,7 @@ describe('Serialize', function () {
         expect(Object.keys(serialized).length).toBe(3);
     });
 
-    it('should serialize a typed object with typed subobjects', function() {
+    it('should serialize a typed object with typed subobjects', function () {
         var test = new TSubObject();
         var serialized = Serialize(test);
         expect(serialized.specialKey).toBeDefined();
@@ -141,11 +157,24 @@ describe('Serialize', function () {
         expect(serialized.v2.z).toBe(void 0);
     });
 
-    it('will call OnSerialized if a type defines it', function() {
+    it('will call OnSerialized if a type defines it', function () {
         var test = new TSubObject();
         spyOn(TSubObject, 'OnSerialized').and.callThrough();
         var json = Serialize(test);
         expect(TSubObject.OnSerialized).toHaveBeenCalledWith(test, json);
     });
 
+    it('should use a custom serializer', function () {
+        var test = new CustomSerializedTest();
+        test.x = 'not custom';
+        var result = Serialize(test);
+        expect(result.x).toBe('custom!');
+    });
+
+    it('should use a custom serialize fn', function () {
+        var test = new CustomSerializedTest2();
+        test.x = 'not custom';
+        var result = Serialize(test);
+        expect(result.x).toBe('custom!');
+    });
 });
