@@ -26,6 +26,35 @@ class T4 {
     @deserializeAs(Date) dateList : Array<Date>;
 }
 
+class JsonTest {
+    @deserialize public obj : any;
+
+    constructor() {
+        this.obj = {
+            key1: 1,
+            nestedKey : {
+                key2: 2
+            }
+        }
+    }
+}
+
+var DeserializerFn = function(src : any) : any {
+    return 'custom!';
+};
+
+var Deserializer = {
+    Deserialize: DeserializerFn
+};
+
+class CustomDeserializeTest {
+    @deserializeAs(Deserializer) public x : string;
+}
+
+class CustomDeserializeTest2 {
+    @deserializeAs(DeserializerFn) public x : string;
+}
+
 describe('Deserialize', function () {
 
     it('should not deserialize if not marked with deserializer', function () {
@@ -112,5 +141,34 @@ describe('Deserialize', function () {
 
         expect(T3.OnDeserialized).toHaveBeenCalledWith(result, json);
         expect(T2.OnDeserialized).toHaveBeenCalledWith(result.child, json.child);
+    });
+
+    it('should deserialize js objects tagged with deserialize', function(){
+        var testJson = new JsonTest();
+        var result = Deserialize(testJson, JsonTest);
+        expect(result).toBeDefined();
+        expect(typeof result.obj === "object").toBeTruthy();
+        expect(result.obj.key1).toBe(1);
+        expect(result.obj.nestedKey.key2).toBe(2);
+    });
+
+    it('should deserialize js primitive arrays tagged with deserialize', function() {
+
+    });
+
+    it('should use a custom deserializer', function() {
+        var testJson = {
+            "x": new Date().toString()
+        };
+        var result = Deserialize(testJson, CustomDeserializeTest);
+        expect(result.x).toBe("custom!");
+    });
+
+    it('should use a custom deserialize function', function() {
+        var testJson = {
+            "x": new Date().toString()
+        };
+        var result = Deserialize(testJson, CustomDeserializeTest2);
+        expect(result.x).toBe("custom!");
     });
 });
