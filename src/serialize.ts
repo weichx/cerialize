@@ -289,7 +289,11 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
         var keyName = metadata.keyName;
 
         if (Array.isArray(source)) {
-            instance[keyName] = deserializeArrayInto(source, metadata.deserializedType, instance[keyName]);
+            if(metadata.deserializedType) {
+                instance[keyName] = deserializeArrayInto(source, metadata.deserializedType, instance[keyName]);
+            } else {
+                instance[keyName] = deserializeArray(source, null);
+            }
         }
         else if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
             instance[keyName] = (<any>metadata.deserializedType).Deserialize(source);

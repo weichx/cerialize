@@ -39,6 +39,10 @@ class JsonTest {
     }
 }
 
+class NestedArrayTest {
+    @deserialize children : string[];
+}
+
 var DeserializerFn = function(src : any) : any {
     return 'custom!';
 };
@@ -152,8 +156,10 @@ describe('Deserialize', function () {
         expect(result.obj.nestedKey.key2).toBe(2);
     });
 
-    it('should deserialize js primitive arrays tagged with deserialize', function() {
-
+    it('should deserialize nested js primitive array tagged with deserialize', function() {
+        var json = { children:["1","2","3","4"] };
+        var result = Deserialize(json, NestedArrayTest);
+        expect(result.children).toEqual(["1","2","3","4"]);
     });
 
     it('should use a custom deserializer', function() {
