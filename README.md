@@ -13,7 +13,7 @@ var json = Serialize(person);
     favorite_hobby: 'coding', 
     'favorite_pet': { 
       Name: 'Cracker', 
-      type: 'Cat',
+      animalType: 'Cat',
       hobby: 'laser pointers'
     } 
   }
@@ -25,7 +25,7 @@ import { serialize, serializeAs } from 'cerialize';
 class Pet {
   //keys can be customized using serializeAs(string)
   @serializeAs('Name') public name : string;
-  @serialize type : string;
+  @serialize animalType : string;
   
   constructor(name : string, type : string) {
     this.name = name;
