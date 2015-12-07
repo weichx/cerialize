@@ -116,7 +116,7 @@ var tree = Deserialize(json, Tree);
 ```
 ## <a name="deserializing_existing_instances"></a> Deserializing Into Existing Instances
 
-It is also possible to re-use existing objects when deserializing. You might want to do this so that you can maintain references to things even after updating their properties. This is handled exactly the same way as `Deserialize(json, Type)` except that it takes one additional argument, the object you want to deserialize properties into. 
+It is also possible to re-use existing objects when deserializing. You might want to do this so that you can maintain references to things even after updating their properties. This is handled exactly the same way as `Deserialize(json, Type)` except that it takes one additional argument, the object you want to deserialize properties into. If the target instance you provide is null or undefined, this behaves identically to `Deserialize`. 
 
 ```typescript
   //reusing the above class and json structures
