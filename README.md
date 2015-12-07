@@ -139,7 +139,7 @@ A callback can be provided for when a class is serialized and / or deserialized.
 ```typescript
 class Bark {
   public static OnSerialized(instance : Bark, json : any) : void {
-    instance.roughness--;
+    json.roughness--;
   }
   
   public static OnDeserialized(instance : Bark, json : any) : void {
