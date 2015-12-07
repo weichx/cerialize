@@ -34,17 +34,46 @@ class T4 {
     @autoserializeAs(Date) public date : Date;
 }
 
-class JsonTest {
+class JsonSubArrayTest {
     @deserialize public obj : any;
 
     constructor() {
         this.obj = {
-            key1: 1,
-            nestedKey: {
-                key2: 2
+            array: [{ x: 1 }, { x: 2 }]
+        }
+    }
+}
+
+class JSONSubObjectTest {
+    @deserialize public  obj : any;
+    constructor() {
+        this.obj = {
+            subobject: {
+                a: 1,
+                b: 2
             }
         }
     }
+}
+
+class ArrayItem {
+    @deserialize public x : string;
+
+    constructor(x : string) {
+        this.x = x;
+    }
+}
+
+class TypedNestedArrayTest {
+    @deserializeAs(ArrayItem) public children : ArrayItem[];
+}
+
+class NestedArrayTest {
+    @deserialize public children : string[];
+}
+
+class NestedArrayOfObjectsTest {
+    @deserialize public children : Array<any>;
 }
 
 var CustomDeserializer = {
@@ -153,28 +182,72 @@ describe('DeserializeInto', function () {
         expect(result.date).toBe(d);
     });
 
-    xit('should deserialize js objects tagged with deserialize', function () {
-        var testJson = new JsonTest();
-        var result = DeserializeInto({
-            obj: {
-                key1: 2,
-                nestedKey: {
-                    key2: 3
-                }
-            }
-        }, JsonTest, testJson);
+    it('should deserialize arrays in untyped objects tagged with deserialize', function () {
+        var source = new JsonSubArrayTest();
+        var json = { obj: { array: [{ x: 3 }, { x: 4 }, { x: 5 }] } };
+        var result = DeserializeInto(json, JsonSubArrayTest, source);
+        expect(result).toEqual(source);
         expect(result).toBeDefined();
         expect(typeof result.obj === "object").toBeTruthy();
-        expect(result.obj.key1).toBe(2);
-        expect(result.obj.nestedKey.key2).toBe(3);
+        expect(result.obj.array.length).toBe(3);
+        expect(result.obj.array[0]).toEqual(source.obj.array[0]);
+        expect(result.obj.array[1]).toEqual(source.obj.array[1]);
+        expect(result.obj.array[0].x).toEqual(3);
+        expect(result.obj.array[1].x).toEqual(4);
+        expect(result.obj.array[2].x).toEqual(5);
     });
 
-    it('should deserialize with a custom deserializer', function() {
-       var testJson = {
-           "x": new Date().toString()
-       };
+    it('should deserialize sub-objects in untyped objects tagged with deserialize', function () {
+        var source = new JSONSubObjectTest();
+        var originalSubObject = source.obj.subobject;
+        expect(source.obj.subobject.c).toBeUndefined();
+        var json = { obj: { subobject: { a: 10 , b: 20, c: 30} } };
+        var result = DeserializeInto(json, JSONSubObjectTest, source);
+        expect(result).toEqual(source);
+        expect(result.obj.subobject).toEqual(originalSubObject);
+        expect(result.obj.subobject.a).toEqual(10);
+        expect(result.obj.subobject.b).toEqual(20);
+        expect(result.obj.subobject.c).toEqual(30);
+    });
+
+    it('should deserialize with a custom deserializer', function () {
+        var testJson = {
+            "x": new Date().toString()
+        };
         var result = DeserializeInto(testJson, CustomDeserialized, null);
         expect(result.x).toBe("custom!");
+    });
+
+    it('will deserialize js nested primitive array tagged with deserialize', function () {
+        var json = { children: ["1", "2", "3", "4"] };
+        var result = DeserializeInto(json, NestedArrayTest, new NestedArrayTest());
+        expect(result.children).toEqual(["1", "2", "3", "4"]);
+        expect(result instanceof NestedArrayTest).toBe(true);
+    });
+
+    it('will deserialize nested non primitive array tagged with deserialize', function () {
+        var json = { children: [{ x: "1" }, { x: "2" }, { x: "3" }, { x: "4" }] };
+        var result = DeserializeInto(json, TypedNestedArrayTest, new TypedNestedArrayTest());
+        expect(result.children[0].x).toEqual("1");
+        expect(result.children[1].x).toEqual("2");
+        expect(result.children[2].x).toEqual("3");
+        expect(result.children[3].x).toEqual("4");
+        expect(result.children[0] instanceof ArrayItem).toBe(true);
+        expect(result.children[1] instanceof ArrayItem).toBe(true);
+        expect(result.children[2] instanceof ArrayItem).toBe(true);
+        expect(result.children[3] instanceof ArrayItem).toBe(true);
+    });
+
+    it("will deserialized neseted object array tagged with deserialize", function () {
+        var original = new NestedArrayOfObjectsTest();
+        original.children = [{ x: "10" }, { x: "20" }, { x: "30" }];
+        var json = { children: [{ x: "1" }, { x: "2" }, { x: "3" }, { x: "4" }] };
+        var result = DeserializeInto(json, NestedArrayOfObjectsTest, new NestedArrayOfObjectsTest());
+        expect(result.children.length).toEqual(4);
+        expect(result.children[0].x).toEqual("1");
+        expect(result.children[1].x).toEqual("2");
+        expect(result.children[2].x).toEqual("3");
+        expect(result.children[3].x).toEqual("4");
     });
 });
 
