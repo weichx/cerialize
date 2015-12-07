@@ -157,7 +157,16 @@ import { inheritSerialization } from 'cerialize';
 class Admin extends User {
 
 }
+```
 
+## Customizing key transforms
+Often your server and your client will have different property naming conventions. For instance, Rails / Ruby generally expects objects to have properties that are under_score_cased while most JS authors prefer camelCase. You can tell Cerialize to use a certain key transform automatically when serializing and deserializing by calling `DeserializeKeysFrom(transform : (key : string) => string)` and `SerializeKeysTo(transform : (key : string) => string)`. A handful of transform functions are provided in this package or you can define your own function conforming to `(key : string) => string`.
+
+```typescript
+import {SerializeKeysTo, DeserializeKeysFrom, UnderscoreCase} from 'cerialize';
+//CamelCase, UnderscoreCase, SnakeCase, and DashCase are provided
+SerializeKeysTo(UnderscoreCase);
+DeserializeKeysFrom(UnderscoreCase);
 ```
 
 ## Requirements
