@@ -5,6 +5,7 @@ try {
 catch (e) {
     win = global;
 }
+//some other modules might want access to the serialization meta data, expose it here
 var TypeMap = win.__CerializeTypeMap = new Map();
 exports.__TypeMap = TypeMap;
 //convert strings like my_camel_string to myCamelString
@@ -38,6 +39,8 @@ function DashCase(str) {
     return str.replace(STRING_DASHERIZE_REGEXP, '$1-$2').toLowerCase();
 }
 exports.DashCase = DashCase;
+//gets meta data for a key name, creating a new meta data instance
+//if the input array doesn't arleady define one for the given keyName
 function getMetaData(array, keyName) {
     for (var i = 0; i < array.length; i++) {
         if (array[i].keyName === keyName) {
@@ -47,6 +50,7 @@ function getMetaData(array, keyName) {
     array.push(new MetaData(keyName));
     return array[array.length - 1];
 }
+//helper for grabbing the type and keyname from a multi-type input variable
 function getTypeAndKeyName(keyNameOrType, keyName) {
     var type = null;
     var key = null;
@@ -60,6 +64,8 @@ function getTypeAndKeyName(keyNameOrType, keyName) {
     return { key: key, type: type };
 }
 //todo instance.constructor.prototype.__proto__ === parent class, maybe use this?
+//because types are stored in a JS Map keyed by constructor, serialization is not inherited by default
+//keeping this seperate by default also allows sub classes to serialize differently than their parent
 function inheritSerialization(parentType) {
     return function (childType) {
         var parentMetaData = TypeMap.get(parentType) || [];
@@ -74,6 +80,8 @@ function inheritSerialization(parentType) {
     };
 }
 exports.inheritSerialization = inheritSerialization;
+//an untyped serialization property annotation, gets existing meta data for the target or creates
+//a new one and assigns the serialization key for that type in the meta data
 function serialize(target, keyName) {
     if (!target || !keyName)
         return;
@@ -83,6 +91,8 @@ function serialize(target, keyName) {
     TypeMap.set(target.constructor, metaDataList);
 }
 exports.serialize = serialize;
+//an untyped deserialization property annotation, gets existing meta data for the target or creates
+//a new one and assigns the deserialization key for that type in the meta data
 function deserialize(target, keyName) {
     if (!target || !keyName)
         return;
@@ -92,6 +102,7 @@ function deserialize(target, keyName) {
     TypeMap.set(target.constructor, metaDataList);
 }
 exports.deserialize = deserialize;
+//this combines @serialize and @deserialize as defined above
 function autoserialize(target, keyName) {
     if (!target || !keyName)
         return;
@@ -103,6 +114,7 @@ function autoserialize(target, keyName) {
 }
 exports.autoserialize = autoserialize;
 //We dont actually need the type to serialize but I like the consistency with deserializeAs which definitely does
+//serializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 function serializeAs(keyNameOrType, keyName) {
     if (!keyNameOrType)
         return;
@@ -114,6 +126,7 @@ function serializeAs(keyNameOrType, keyName) {
         var metadata = getMetaData(metaDataList, actualKeyName);
         metadata.serializedKey = (key) ? key : actualKeyName;
         metadata.serializedType = type;
+        //this allows the type to be a stand alone function instead of a class
         if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
             metadata.serializedType = {
                 Serialize: type
@@ -123,6 +136,7 @@ function serializeAs(keyNameOrType, keyName) {
     };
 }
 exports.serializeAs = serializeAs;
+//deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 function deserializeAs(keyNameOrType, keyName) {
     if (!keyNameOrType)
         return;
@@ -134,6 +148,7 @@ function deserializeAs(keyNameOrType, keyName) {
         var metadata = getMetaData(metaDataList, actualKeyName);
         metadata.deserializedKey = (key) ? key : actualKeyName;
         metadata.deserializedType = type;
+        //this allows the type to be a stand alone function instead of a class
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = {
                 Deserialize: type
@@ -143,6 +158,7 @@ function deserializeAs(keyNameOrType, keyName) {
     };
 }
 exports.deserializeAs = deserializeAs;
+//serializes and deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 function autoserializeAs(keyNameOrType, keyName) {
     if (!keyNameOrType)
         return;
@@ -161,6 +177,9 @@ function autoserializeAs(keyNameOrType, keyName) {
     };
 }
 exports.autoserializeAs = autoserializeAs;
+//helper class to contain serialization meta data for a property, each property
+//in a type tagged with a serialization annotation will contain an array of these
+//objects each describing one property
 var MetaData = (function () {
     function MetaData(keyName) {
         this.keyName = keyName;
@@ -168,8 +187,8 @@ var MetaData = (function () {
         this.deserializedKey = null;
         this.deserializedType = null;
         this.serializedType = null;
-        this.inheritedType = null;
     }
+    //checks for akey name in a meta data array
     MetaData.hasKeyName = function (metadataArray, key) {
         for (var i = 0; i < metadataArray.length; i++) {
             if (metadataArray[i].keyName === key)
@@ -177,6 +196,7 @@ var MetaData = (function () {
         }
         return false;
     };
+    //clone a meta data instance, used for inheriting serialization properties
     MetaData.clone = function (data) {
         var metadata = new MetaData(data.keyName);
         metadata.deserializedKey = data.deserializedKey;
@@ -187,52 +207,80 @@ var MetaData = (function () {
     };
     return MetaData;
 })();
+//merges two primitive objects recursively, overwriting or defining properties on
+//`instance` as they defined in `json`. Works on objects, arrays and primitives
 function mergePrimitiveObjects(instance, json) {
     if (!json)
-        return instance;
+        return instance; //if we dont have a json value, just use what the instance defines already
+    if (!instance)
+        return json; //if we dont have an instance value, just use the json
+    //for each key in the input json we need to do a merge into the instance object
     Object.keys(json).forEach(function (key) {
-        var value = json[key];
-        if (Array.isArray(value)) {
+        var transformedKey = key;
+        if (typeof deserializeKeyTransform === "function") {
+            transformedKey = deserializeKeyTransform(key);
         }
-        else if (value && typeof value === "object") {
+        var jsonValue = json[key];
+        var instanceValue = instance[key];
+        if (Array.isArray(jsonValue)) {
+            //in the array case we reuse the items that exist already where possible
+            //so reset the instance array length (or make it an array if it isnt)
+            //then call mergePrimitiveObjects recursively
+            instanceValue = Array.isArray(instanceValue) ? instanceValue : [];
+            instanceValue.length = jsonValue.length;
+            for (var i = 0; i < instanceValue.length; i++) {
+                instanceValue[i] = mergePrimitiveObjects(instanceValue[i], jsonValue[i]);
+            }
+        }
+        else if (jsonValue && typeof jsonValue === "object") {
+            if (!instanceValue || typeof instanceValue !== "object") {
+                instanceValue = {};
+            }
+            instanceValue = mergePrimitiveObjects(instanceValue, jsonValue);
         }
         else {
-            var transformedKey = key;
-            if (typeof deserializeKeyTransform === "function") {
-                transformedKey = deserializeKeyTransform(key);
-            }
-            instance[transformedKey] = json[key];
+            //primitive case, just use straight assignment
+            instanceValue = jsonValue;
         }
-        instance[key] = mergePrimitiveObjects(instance[key], value);
+        instance[transformedKey] = instanceValue;
     });
     return instance;
 }
+//takes an array defined in json and deserializes it into an array that ist stuffed with instances of `type`.
+//any instances already defined in `arrayInstance` will be re-used where possible to maintain referential integrity.
 function deserializeArrayInto(source, type, arrayInstance) {
     if (!Array.isArray(arrayInstance)) {
         arrayInstance = new Array(source.length);
     }
+    //extend or truncate the target array to match the source array
     arrayInstance.length = source.length;
     for (var i = 0; i < source.length; i++) {
         arrayInstance[i] = DeserializeInto(source[i], type, arrayInstance[i] || new type());
     }
     return arrayInstance;
 }
+//takes an object defined in json and deserializes it into a `type` instance or populates / overwrites
+//properties on `instance` if it is provided.
 function deserializeObjectInto(json, type, instance) {
     var metadataArray = TypeMap.get(type);
+    //if we dont have an instance we need to create a new `type`
     if (instance === null || instance === void 0) {
         if (type) {
             instance = new type();
         }
     }
+    //if we dont have any meta data and we dont have a type to inflate, just merge the objects
     if (instance && !type && !metadataArray) {
-        //todo fix this, it shouldn't overwrite objects
-        return JSON.parse(json.stringify(json)); //mergePrimitiveObjects(instance, json);
+        return mergePrimitiveObjects(instance, json);
     }
+    //if we dont have meta data just bail out and keep what we have
     if (!metadataArray) {
         return instance;
     }
+    //for each property in meta data, try to hydrate that property with its corresponding json value
     for (var i = 0; i < metadataArray.length; i++) {
         var metadata = metadataArray[i];
+        //these are not the droids we're looking for (to deserialize), moving along
         if (!metadata.deserializedKey)
             continue;
         var serializedKey = metadata.deserializedKey;
@@ -245,8 +293,15 @@ function deserializeObjectInto(json, type, instance) {
         if (source === void 0)
             continue;
         var keyName = metadata.keyName;
+        //in the array case check for a type, if we have one deserialize an array full of those,
+        //otherwise (thanks to @garkin) just do a generic array deserialize
         if (Array.isArray(source)) {
-            instance[keyName] = deserializeArrayInto(source, metadata.deserializedType, instance[keyName]);
+            if (metadata.deserializedType) {
+                instance[keyName] = deserializeArrayInto(source, metadata.deserializedType, instance[keyName]);
+            }
+            else {
+                instance[keyName] = deserializeArray(source, null);
+            }
         }
         else if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
             instance[keyName] = metadata.deserializedType.Deserialize(source);
@@ -270,11 +325,13 @@ function deserializeObjectInto(json, type, instance) {
             instance[keyName] = source;
         }
     }
+    //invoke our after deserialized callback if provided
     if (type && typeof type.OnDeserialized === "function") {
         type.OnDeserialized(instance, json);
     }
     return instance;
 }
+//takes some json, a type, and a target object and deserializes the json into that object
 function DeserializeInto(source, type, target) {
     if (Array.isArray(source)) {
         return deserializeArrayInto(source, type, target || []);
@@ -287,6 +344,7 @@ function DeserializeInto(source, type, target) {
     }
 }
 exports.DeserializeInto = DeserializeInto;
+//deserializes an array of json into an array of `type`
 function deserializeArray(source, type) {
     var retn = new Array(source.length);
     for (var i = 0; i < source.length; i++) {
@@ -294,15 +352,18 @@ function deserializeArray(source, type) {
     }
     return retn;
 }
+//deserialize a bit ofjson into an instace of `type`
 function deserializeObject(json, type) {
     var metadataArray = TypeMap.get(type);
+    //if we dont have meta data, just decode the json and use that
     if (!metadataArray) {
         if (!type) {
             return JSON.parse(JSON.stringify(json));
         }
-        return new type();
+        return new type(); //todo this probably wrong
     }
     var instance = new type();
+    //for each tagged property on the source type, try to deserialize it
     for (var i = 0; i < metadataArray.length; i++) {
         var metadata = metadataArray[i];
         if (!metadata.deserializedKey)
@@ -340,6 +401,7 @@ function deserializeObject(json, type) {
     }
     return instance;
 }
+//deserializes a bit of json into a `type`
 function Deserialize(json, type) {
     if (Array.isArray(json)) {
         return deserializeArray(json, type);
@@ -358,6 +420,7 @@ function Deserialize(json, type) {
     }
 }
 exports.Deserialize = Deserialize;
+//take an array and spit out json
 function serializeArray(source) {
     var serializedArray = new Array(source.length);
     for (var j = 0; j < source.length; j++) {
@@ -365,6 +428,7 @@ function serializeArray(source) {
     }
     return serializedArray;
 }
+//take an instance of something and try to spit out json for it based on property annotaitons
 function serializeTypedObject(instance) {
     var json = {};
     var metadataArray = TypeMap.get(instance.constructor);
@@ -399,6 +463,7 @@ function serializeTypedObject(instance) {
     }
     return json;
 }
+//take an instance of something and spit out some json
 function Serialize(instance) {
     if (instance === null || instance === void 0)
         return null;
@@ -426,17 +491,22 @@ exports.Serialize = Serialize;
 //todo finish documenting!
 //todo further test ISerializable
 //todo null check for type in deserialize
-//todo if serializedType is provided, treat it as an override for instance.constructor
+//these are used for transforming keys from one format to another
 var serializeKeyTransform = null;
 var deserializeKeyTransform = null;
+//setter for deserializing key transform
 function DeserializeKeysFrom(transform) {
     deserializeKeyTransform = transform;
 }
 exports.DeserializeKeysFrom = DeserializeKeysFrom;
+//setter for serializing key transform
 function SerializeKeysTo(transform) {
     serializeKeyTransform = transform;
 }
 exports.SerializeKeysTo = SerializeKeysTo;
+//this is kinda dumb but typescript doesnt treat enums as a type, but sometimes you still
+//want them to be serialized / deserialized, this does the trick but must be called after
+//the enum is defined.
 function SerializableEnumeration(e) {
     e.Serialize = function (x) {
         return e[x];
@@ -446,3 +516,4 @@ function SerializableEnumeration(e) {
     };
 }
 exports.SerializableEnumeration = SerializableEnumeration;
+//expose the type map
