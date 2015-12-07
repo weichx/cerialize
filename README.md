@@ -2,7 +2,24 @@
 Easy serialization through ES7/Typescript annotations
 
 This is a library to make serializing and deserializing complex JS objects a breeze. It works by applying meta data annotations (as described in ES7 proposal and experimental Typescript feature) to fields in a user defined class. 
-
+## Example
+```typescript
+var pet = new Pet('Cracker', 'Cat');
+var person = new Person('Matt', new Date(1989, 4, 3), 'coding', pet);
+var json = Serialize(person);
+/* json = {
+    name: 'Matt', 
+    birthdate: 'Wed May 03 1989 00:00:00 GMT-0400 (EDT)', 
+    favorite_hobby: 'coding', 
+    'favorite_pet': { 
+      Name: 'Cracker', 
+      type: 'Cat',
+      hobby: 'laser pointers'
+    } 
+  }
+*/  
+```
+## Details
 ```typescript
 import { serialize, serializeAs } from 'cerialize';
 class Pet {
@@ -26,14 +43,14 @@ class Person {
   @serialize public name : string;
   
   //complex types like Date or a user defined type like `User` use the serializeAs(keyNameOrType, keyName?) construct
-  @serializeAs(Date) 
-  public birthdate : Date;
+  @serializeAs(Date) public birthdate : Date; 
   
-  @serializeAs('favorite_hobby') //serialize key name as `favorite_hobby` instead of `hobby`
-  public hobby : string;
+  //serialize key name as `favorite_hobby` instead of `hobby`
+  @serializeAs('favorite_hobby') public hobby : string; 
   
-  @serializeAs('favorite_pet', Pet) //serialize the key name as `favorite_pet` and treat it like a `Pet`
-  public pet : Pet;
+  //serialize the key name as `favorite_pet` and treat it like a `Pet`
+  @serializeAs(Pet, 'favorite_pet') public pet : Pet;
+  
   
   public firstName : string; //things not marked with an annotation are not serialized
   
@@ -46,20 +63,7 @@ class Person {
   }
   
 }
-var pet = new Pet('Cracker', 'Cat');
-var person = new Person(Matt', new Date(1989, 4, 3), 'coding', pet);
-var json = Serialize(person);
-/* json = {
-    name: 'Matt', 
-    birthdate: 'Wed May 03 1989 00:00:00 GMT-0400 (EDT)', 
-    favorite_hobby: 'coding', 
-    'favorite_pet': { 
-      Name: 'Cracker', 
-      type: 'Cat',
-      hobby: 'laser pointers'
-    } 
-  }
-*/  
+
 ```
 
 After defining which properties should be serialized, deserialized, or both, the actual marshalling is handled by a trio of simple functions.
@@ -110,7 +114,7 @@ class Bark {
 var json = {
   species: 'Oak',
   barkType: { roughness: 1 },
-  leafs: [ {color: 'red', blooming: 'false', bloomedAt: 'Mon Dec 07 2015 11:48:20 GMT-0500 (EST)' }
+  leafs: [ {color: 'red', blooming: 'false', bloomedAt: 'Mon Dec 07 2015 11:48:20 GMT-0500 (EST)' } ]
 }
 var tree = Deserialize(json, Tree);
 ```
