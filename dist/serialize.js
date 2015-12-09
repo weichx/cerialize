@@ -38,7 +38,7 @@ function DashCase(str) {
     str = str.replace(/_/g, '-');
     return str.replace(STRING_DASHERIZE_REGEXP, '$1-$2').toLowerCase();
 }
-exports.DashCase = DashCase;
+exports.DashCase = DashCase;7
 //gets meta data for a key name, creating a new meta data instance
 //if the input array doesn't arleady define one for the given keyName
 function getMetaData(array, keyName) {

@@ -37,7 +37,7 @@ gulp.task('build', function () {
         "noResolve": false,
         "suppressImplicitAnyIndexErrors": true,
         "noEmitOnError": true,
-        "version": "1.5.3",
+        "version": "1.7.3",
         "emitDecoratorMetadata":true,
         "experimentalDecorators":true
 

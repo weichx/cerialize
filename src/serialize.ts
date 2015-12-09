@@ -262,7 +262,7 @@ function mergePrimitiveObjects(instance : any, json : any) : any {
             }
         }
         else if (jsonValue && typeof jsonValue === "object") {
-            if(!instanceValue || typeof instanceValue !== "object") {
+            if (!instanceValue || typeof instanceValue !== "object") {
                 instanceValue = {};
             }
             instanceValue = mergePrimitiveObjects(instanceValue, jsonValue);
@@ -333,20 +333,20 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
 
         var keyName = metadata.keyName;
 
+        //if there is a custom deserialize function, use that
+        if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
+            instance[keyName] = (<any>metadata.deserializedType).Deserialize(source);
+        }
         //in the array case check for a type, if we have one deserialize an array full of those,
         //otherwise (thanks to @garkin) just do a generic array deserialize
-        if (Array.isArray(source)) {
+        else if (Array.isArray(source)) {
             if (metadata.deserializedType) {
                 instance[keyName] = deserializeArrayInto(source, metadata.deserializedType, instance[keyName]);
             } else {
                 instance[keyName] = deserializeArray(source, null);
             }
         }
-        //if there is a custom deserialize function, use that
-        else if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
-            instance[keyName] = (<any>metadata.deserializedType).Deserialize(source);
-        }
-        //if the type is a Date, do that
+        //if the type is a Date, reconstruct a real date instance
         else if (typeof source === "string" && metadata.deserializedType === Date) {
             var deserializedDate = new Date(source);
             if (instance[keyName] instanceof Date) {
@@ -432,11 +432,11 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
 
         if (source === void 0) continue;
 
-        if (Array.isArray(source)) {
-            instance[metadata.keyName] = deserializeArray(source, metadata.deserializedType);
-        }
-        else if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
+        if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
             instance[metadata.keyName] = (<any>metadata.deserializedType).Deserialize(source);
+        }
+        else if (Array.isArray(source)) {
+            instance[metadata.keyName] = deserializeArray(source, metadata.deserializedType);
         }
         else if (typeof source === "string" && metadata.deserializedType === Date) {
             instance[metadata.keyName] = new Date(source);
@@ -562,10 +562,6 @@ export function Serialize(instance : any) : any {
 
     return instance;
 }
-
-//todo finish documenting!
-//todo further test ISerializable
-//todo null check for type in deserialize
 
 //these are used for transforming keys from one format to another
 var serializeKeyTransform : (key : string) => string = null;
