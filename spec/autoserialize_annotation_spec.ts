@@ -60,7 +60,7 @@ describe('autoserializeAs', function () {
         expect(__TypeMap.get(AsTest2)[0].deserializedType).toBe(Vector2);
     });
 });
-
+/* [Weichx 12/9/15] credit to @garkin for contributing the rest of this file */
 // ES6 Set stub
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 // https://github.com/cloud9ide/typescript/blob/master/typings/lib.d.ts
