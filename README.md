@@ -27,9 +27,9 @@ class Pet {
   @serializeAs('Name') public name : string;
   @serialize animalType : string;
   
-  constructor(name : string, type : string) {
+  constructor(name : string, animalType : string) {
     this.name = name;
-    this.type = type;
+    this.animalType = animalType;
   }
   
   //this callback runs after the object is serialized. JSON can be altered here
@@ -104,7 +104,7 @@ class Tree {
 
 class Leaf {
   @deserialize public color : string;
-  @deseriailze public blooming : boolean;
+  @deserialize public blooming : boolean;
   @deserializeAs(Date) public bloomedAt : Date;
 }
 
@@ -114,7 +114,7 @@ class Bark {
 var json = {
   species: 'Oak',
   barkType: { roughness: 1 },
-  leafs: [ {color: 'red', blooming: 'false', bloomedAt: 'Mon Dec 07 2015 11:48:20 GMT-0500 (EST)' } ]
+  leafs: [ {color: 'red', blooming: false, bloomedAt: 'Mon Dec 07 2015 11:48:20 GMT-0500 (EST)' } ]
 }
 var tree = Deserialize(json, Tree);
 ```
