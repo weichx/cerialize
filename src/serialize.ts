@@ -432,11 +432,13 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
 
         if (source === void 0) continue;
 
-        if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
-            instance[metadata.keyName] = (<any>metadata.deserializedType).Deserialize(source);
+        if (Array.isArray(source)) {
+            if (source.length === 0) instance[metadata.keyName] = source;
+            else instance[metadata.keyName] = deserializeArray(source, type);
         }
-        else if (Array.isArray(source)) {
-            instance[metadata.keyName] = deserializeArray(source, metadata.deserializedType);
+        else if (metadata.deserializedType
+          && typeof (<any>metadata.deserializedType).Deserialize === "function") {
+            instance[metadata.keyName] = (<any>metadata.deserializedType).Deserialize(source);
         }
         else if (typeof source === "string" && metadata.deserializedType === Date) {
             instance[metadata.keyName] = new Date(source);

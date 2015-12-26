@@ -39,6 +39,11 @@ class JsonTest {
     }
 }
 
+class Tree {
+    @deserialize public value: string;
+    @deserializeAs(Array) trees: Array<Tree>;
+}
+
 var DeserializerFn = function(src : any) : any {
     return 'custom!';
 };
@@ -170,5 +175,47 @@ describe('Deserialize', function () {
         };
         var result = Deserialize(testJson, CustomDeserializeTest2);
         expect(result.x).toBe("custom!");
+    });
+
+    it('should parse a nested json including empty arrays', function() {
+        var root1 = {
+            trees: new Array<Tree>(),
+            value: "root1"
+        };
+
+        var deserialized1 = Deserialize(root1, Tree);
+        expect(deserialized1.trees.length).toBe(0);
+        expect(deserialized1.value).toBe("root1");
+
+        /**
+         * `-- root
+         *     |-- t1
+         *     `-- t2
+         *         |-- t3
+         *         `-- t4
+         */
+
+        var root2 = {
+            trees: [{
+                value: "t1" ,
+                trees: new Array<Tree>()
+            }, {
+                value: "t2",
+                trees: [{
+                    value: "t3",
+                    trees: new Array<Tree>()
+                }, {
+                    value: "t4",
+                    trees: new Array<Tree>()
+                }]
+            }],
+            value: "root2"
+        };
+
+        var deserialized2 = Deserialize(root2, Tree);
+        console.log(deserialized2);
+        expect(deserialized2.trees.length).toBe(2);
+        expect(deserialized2.trees[0].trees.length).toBe(0); /* t1 includes an empty trees */
+        expect(deserialized2.trees[1].trees.length).toBe(2); /* t2 includes 2 trees (t3, t4) */
     });
 });
