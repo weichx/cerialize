@@ -434,7 +434,11 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
 
         if (Array.isArray(source)) {
             if (source.length === 0) instance[metadata.keyName] = source;
-            else instance[metadata.keyName] = deserializeArray(source, type);
+            else {
+                if (typeof metadata.deserializedType === "function")
+                    type = metadata.deserializedType;
+                instance[metadata.keyName] = deserializeArray(source, type);
+            }
         }
         else if (metadata.deserializedType
           && typeof (<any>metadata.deserializedType).Deserialize === "function") {
