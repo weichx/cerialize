@@ -39,16 +39,6 @@ class JsonTest {
     }
 }
 
-class Fruit {
-    @deserialize public name: string;
-}
-
-class Tree {
-    @deserialize public value: string;
-    @deserializeAs(Fruit) fruits: Array<Fruit>;
-    @deserializeAs(Tree) trees: Array<Tree>;
-}
-
 var DeserializerFn = function(src : any) : any {
     return 'custom!';
 };
@@ -180,96 +170,5 @@ describe('Deserialize', function () {
         };
         var result = Deserialize(testJson, CustomDeserializeTest2);
         expect(result.x).toBe("custom!");
-    });
-
-    it('should deserialize a json including nested empty arrays', function() {
-        var root1 = {
-            trees: new Array<Tree>(),
-            value: "root1"
-        };
-
-        var deserialized1 = Deserialize(root1, Tree);
-        expect(deserialized1.trees.length).toBe(0);
-        expect(deserialized1.value).toBe("root1");
-
-        /**
-         * `-- root
-         *     |-- t1
-         *     `-- t2
-         *         |-- t3
-         *         `-- t4
-         */
-
-        var root2 = {
-            trees: [{
-                value: "t1" ,
-                trees: new Array<Tree>()
-            }, {
-                value: "t2",
-                trees: [{
-                    value: "t3",
-                    trees: new Array<Tree>()
-                }, {
-                    value: "t4",
-                    trees: new Array<Tree>()
-                }]
-            }],
-            value: "root2"
-        };
-
-        var deserialized2 = Deserialize(root2, Tree);
-        expect(deserialized2.trees.length).toBe(2);
-        expect(deserialized2.trees[0].trees.length).toBe(0); /* t1 includes empty trees */
-        expect(deserialized2.trees[1].trees.length).toBe(2); /* t2 includes 2 trees (t3, t4) */
-    });
-
-    it('should deserialize a json including nested, multiple empty arrays', function() {
-        var root1 = {
-            fruits: new Array<Fruit>(),
-            trees: new Array<Tree>(),
-            value: "root1"
-        };
-
-        var deserialized1 = Deserialize(root1, Tree);
-        expect(deserialized1.trees.length).toBe(0);
-        expect(deserialized1.value).toBe("root1");
-        expect(deserialized1.fruits.length).toBe(0);
-
-        /**
-         * `-- root
-         *     |-- t1 including f1
-         *     `-- t2
-         *         |-- t3 including f3
-         *         `-- t4
-         */
-
-        var root2 = {
-            trees: [{
-                value: "t1" ,
-                trees: new Array<Tree>(),
-                fruits: new Array<Fruit>(),
-            }, {
-                value: "t2",
-                trees: [{
-                    value: "t3",
-                    trees: new Array<Tree>(),
-                    fruits: new Array<Fruit>(),
-                }, {
-                    value: "t4",
-                    trees: new Array<Tree>()
-                }]
-            }],
-            value: "root2"
-        };
-
-        var deserialized2 = Deserialize(root2, Tree);
-        expect(deserialized2.trees.length).toBe(2);
-        expect(deserialized2.trees[0].trees.length).toBe(0); /* t1 includes empty trees */
-        expect(deserialized2.trees[0].fruits.length).toBe(0); /* t1 includes empty fruits */
-        expect(deserialized2.trees[1].trees.length).toBe(2); /* t2 includes 2 trees (t3, t4) */
-        expect(deserialized2.trees[1].trees[0].trees.length).toBe(0); /* t3 includes empty trees */
-        expect(deserialized2.trees[1].trees[0].fruits.length).toBe(0); /* t3 includes fruits trees */
-        expect(deserialized2.trees[1].trees[1].trees.length).toBe(0); /* t4 includes empty trees */
-        expect(deserialized2.trees[1].trees[1].fruits).toBeUndefined(); /* t4 has no fruits */
     });
 });
