@@ -293,18 +293,17 @@ function deserializeObjectInto(json, type, instance) {
         if (source === void 0)
             continue;
         var keyName = metadata.keyName;
-        //in the array case check for a type, if we have one deserialize an array full of those,
-        //otherwise (thanks to @garkin) just do a generic array deserialize
-        if (Array.isArray(source)) {
+        //if there is a custom deserialize function, use that
+        if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
+            instance[keyName] = metadata.deserializedType.Deserialize(source);
+        }
+        else if (Array.isArray(source)) {
             if (metadata.deserializedType) {
                 instance[keyName] = deserializeArrayInto(source, metadata.deserializedType, instance[keyName]);
             }
             else {
                 instance[keyName] = deserializeArray(source, null);
             }
-        }
-        else if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
-            instance[keyName] = metadata.deserializedType.Deserialize(source);
         }
         else if (typeof source === "string" && metadata.deserializedType === Date) {
             var deserializedDate = new Date(source);
@@ -375,25 +374,27 @@ function deserializeObject(json, type) {
             }
         }
         var source = json[serializedKey];
+        var keyName = metadata.keyName;
         if (source === void 0)
             continue;
-        if (Array.isArray(source)) {
-            instance[metadata.keyName] = deserializeArray(source, metadata.deserializedType);
+        //if there is a custom deserialize function, use that
+        if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
+            instance[keyName] = metadata.deserializedType.Deserialize(source);
         }
-        else if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
-            instance[metadata.keyName] = metadata.deserializedType.Deserialize(source);
+        else if (Array.isArray(source)) {
+            instance[keyName] = deserializeArray(source, metadata.deserializedType || null);
         }
         else if (typeof source === "string" && metadata.deserializedType === Date) {
-            instance[metadata.keyName] = new Date(source);
+            instance[keyName] = new Date(source);
         }
         else if (typeof json === "string" && type === RegExp) {
-            instance[metadata.keyName] = new RegExp(json);
+            instance[keyName] = new RegExp(json);
         }
         else if (source && typeof source === "object") {
-            instance[metadata.keyName] = deserializeObject(source, metadata.deserializedType);
+            instance[keyName] = deserializeObject(source, metadata.deserializedType);
         }
         else {
-            instance[metadata.keyName] = source;
+            instance[keyName] = source;
         }
     }
     if (type && typeof type.OnDeserialized === "function") {
@@ -488,9 +489,6 @@ function Serialize(instance) {
     return instance;
 }
 exports.Serialize = Serialize;
-//todo finish documenting!
-//todo further test ISerializable
-//todo null check for type in deserialize
 //these are used for transforming keys from one format to another
 var serializeKeyTransform = null;
 var deserializeKeyTransform = null;
