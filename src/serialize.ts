@@ -429,32 +429,29 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         }
 
         var source = json[serializedKey];
-
+        var keyName = metadata.keyName;
         if (source === void 0) continue;
 
-        if (Array.isArray(source)) {
-            if (source.length === 0) instance[metadata.keyName] = source;
-            else {
-                if (typeof metadata.deserializedType === "function")
-                    type = metadata.deserializedType;
-                instance[metadata.keyName] = deserializeArray(source, type);
-            }
+        //if there is a custom deserialize function, use that
+        if (metadata.deserializedType && typeof (<any>metadata.deserializedType).Deserialize === "function") {
+            instance[keyName] = (<any>metadata.deserializedType).Deserialize(source);
         }
-        else if (metadata.deserializedType
-          && typeof (<any>metadata.deserializedType).Deserialize === "function") {
-            instance[metadata.keyName] = (<any>metadata.deserializedType).Deserialize(source);
+        //in the array case check for a type, if we have one deserialize an array full of those,
+        //otherwise (thanks to @garkin) just do a generic array deserialize
+        else if (Array.isArray(source)) {
+            instance[keyName] = deserializeArray(source, metadata.deserializedType || null);
         }
         else if (typeof source === "string" && metadata.deserializedType === Date) {
-            instance[metadata.keyName] = new Date(source);
+            instance[keyName] = new Date(source);
         }
         else if (typeof json === "string" && type === RegExp) {
-            instance[metadata.keyName] = new RegExp(json);
+            instance[keyName] = new RegExp(json);
         }
         else if (source && typeof source === "object") {
-            instance[metadata.keyName] = deserializeObject(source, metadata.deserializedType);
+            instance[keyName] = deserializeObject(source, metadata.deserializedType);
         }
         else {
-            instance[metadata.keyName] = source;
+            instance[keyName] = source;
         }
     }
 
