@@ -45,8 +45,8 @@ class Fruit {
 
 class Tree {
     @deserialize public value: string;
-    @deserializeAs(Array) fruits: Array<Fruit>;
-    @deserializeAs(Array) trees: Array<Tree>;
+    @deserializeAs(Fruit) fruits: Array<Fruit>;
+    @deserializeAs(Tree) trees: Array<Tree>;
 }
 
 var DeserializerFn = function(src : any) : any {
@@ -231,7 +231,6 @@ describe('Deserialize', function () {
         };
 
         var deserialized1 = Deserialize(root1, Tree);
-        console.log(deserialized1);
         expect(deserialized1.trees.length).toBe(0);
         expect(deserialized1.value).toBe("root1");
         expect(deserialized1.fruits.length).toBe(0);
@@ -264,7 +263,6 @@ describe('Deserialize', function () {
         };
 
         var deserialized2 = Deserialize(root2, Tree);
-        console.log(JSON.stringify(deserialized2));
         expect(deserialized2.trees.length).toBe(2);
         expect(deserialized2.trees[0].trees.length).toBe(0); /* t1 includes empty trees */
         expect(deserialized2.trees[0].fruits.length).toBe(0); /* t1 includes empty fruits */
