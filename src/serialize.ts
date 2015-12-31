@@ -430,7 +430,7 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
 
         var source = json[serializedKey];
         var keyName = metadata.keyName;
-        
+
         if (source === void 0) continue;
 
         //if there is a custom deserialize function, use that
