@@ -1,5 +1,11 @@
 node_modules
 .idea
+*.iml
+
+spec/**/*.js
+spec/**/*.js.map
+src/**/*.js
+src/**/*.js.map
 
 spec/spec
 spec/src

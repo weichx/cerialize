@@ -371,8 +371,14 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
     }
 
     //invoke our after deserialized callback if provided
-    if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, json);
+    var ctor: any = type;
+
+    while(ctor) {
+        if (typeof (<any>ctor).OnDeserialized === "function") ctor.OnDeserialized(instance, json);
+
+        if (!(ctor.prototype && ctor.prototype.__proto__)) break; /* if ctor has no super class */
+
+        ctor = ctor.prototype.__proto__.constructor;
     }
 
     return instance;
@@ -455,8 +461,14 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         }
     }
 
-    if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, json);
+    var ctor: any = type;
+
+    while(ctor) {
+        if (typeof (<any>ctor).OnDeserialized === "function") ctor.OnDeserialized(instance, json);
+
+        if (!(ctor.prototype && ctor.prototype.__proto__)) break; /* if ctor has no super class */
+
+        ctor = ctor.prototype.__proto__.constructor;
     }
 
     return instance;

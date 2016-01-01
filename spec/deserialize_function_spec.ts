@@ -49,6 +49,39 @@ class Tree {
     @deserializeAs(Tree) trees: Array<Tree>;
 }
 
+class Person {
+    @deserialize public name: string;
+    @deserializeAs("_age") public age: string;
+    public address: number;
+
+    public static OnDeserialized(instance: Person, json: any): void {
+        var address_info = json.address_info;
+
+        if (address_info) {
+            instance.address = address_info.home_address;
+        }
+    }
+}
+
+@inheritSerialization(Person)
+class Student extends Person {
+    @deserialize public school_name: string;
+    @deserializeAs("class_number") public class: number;
+    public GPA: number;
+
+    public static OnDeserialized(instance: Student, json: any): void {
+        var grades: Array<number> = json.grades;
+
+        if (grades && Array.isArray(grades) && grades.length > 0) {
+            var total: number = grades.reduce(function (acc, s) {
+              return acc + s;
+            }, 0);
+
+            instance.GPA = total / grades.length;
+        }
+    }
+}
+
 var DeserializerFn = function(src : any) : any {
     return 'custom!';
 };
@@ -151,6 +184,37 @@ describe('Deserialize', function () {
 
         expect(T3.OnDeserialized).toHaveBeenCalledWith(result, json);
         expect(T2.OnDeserialized).toHaveBeenCalledWith(result.child, json.child);
+    });
+
+    it('should call OnDeserializes in the parent and child classes both', function() {
+        var json = {
+            name: "John Watson",
+            _age: 23,
+            address_info: {
+                company_address: "BS-401",
+                home_address: "Baker Street 221B"
+            },
+
+            school_name: "University of London",
+            class_number: 15,
+            grades: [90, 85, 77, 100]
+        };
+
+        var watson = Deserialize(json, Student);
+
+        /** deserializing parent class variables */
+        expect(watson.name).toEqual(json.name); /* @deserialize */
+        expect(watson.age).toEqual(json._age);  /* @deserializeAs */
+        expect(watson.address).toEqual(json.address_info.home_address); /* OnDeserialize */
+
+        /** deserializing child class variables */
+        expect(watson.school_name).toEqual(json.school_name); /* @deserialize */
+        expect(watson.class).toEqual(json.class_number);      /* @deserializeAs */
+
+        var expecteGPA = json.grades.reduce(function(acc, r) {
+            return acc + r;
+        }, 0) / json.grades.length;
+        expect(watson.GPA).toEqual(expecteGPA);
     });
 
     it('should deserialize js objects tagged with deserialize', function(){
