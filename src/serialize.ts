@@ -371,21 +371,15 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
     }
 
     //invoke our after deserialized callback if provided
-    var ctorsWithOnDeserializedHook = new Array<any>();
     var ctor: any = type;
 
-    while(ctor && typeof (<any>ctor).OnDeserialized === "function") {
-        ctorsWithOnDeserializedHook.push(ctor);
+    // typeof (<any>ctor).OnDeserialized === "function") {
+    while(ctor) {
+        if (typeof (<any>ctor).OnDeserialized === "function") ctor.OnDeserialized(instance, json);
 
-        if (ctor.prototype &&
-          ctor.prototype.__proto__ &&
-          ctor.prototype.__proto__.constructor) { /** iff ctor has super class */
+        if (!(ctor.prototype && ctor.prototype.__proto__)) break; /* if ctor has no super class */
+
         ctor = ctor.prototype.__proto__.constructor;
-        }
-    }
-
-    for (var ctorIndex = 0; ctorIndex < ctorsWithOnDeserializedHook.length; ctorIndex++) {
-        ctorsWithOnDeserializedHook[ctorIndex].OnDeserialized(instance, json);
     }
 
     return instance;
@@ -468,21 +462,15 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         }
     }
 
-    var ctorsWithOnDeserializedHook = new Array<any>();
     var ctor: any = type;
 
-    while(ctor && typeof (<any>ctor).OnDeserialized === "function") {
-        ctorsWithOnDeserializedHook.push(ctor);
+    // typeof (<any>ctor).OnDeserialized === "function") {
+    while(ctor) {
+        if (typeof (<any>ctor).OnDeserialized === "function") ctor.OnDeserialized(instance, json);
 
-        if (ctor.prototype &&
-          ctor.prototype.__proto__ &&
-          ctor.prototype.__proto__.constructor) { /** iff ctor has super class */
-           ctor = ctor.prototype.__proto__.constructor;
-        }
-    }
+        if (!(ctor.prototype && ctor.prototype.__proto__)) break; /* if ctor has no super class */
 
-    for (var ctorIndex = 0; ctorIndex < ctorsWithOnDeserializedHook.length; ctorIndex++) {
-        ctorsWithOnDeserializedHook[ctorIndex].OnDeserialized(instance, json);
+        ctor = ctor.prototype.__proto__.constructor;
     }
 
     return instance;
