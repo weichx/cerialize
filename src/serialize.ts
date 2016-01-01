@@ -371,8 +371,21 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
     }
 
     //invoke our after deserialized callback if provided
-    if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, json);
+    var ctorsWithOnDeserializedHook = new Array<any>();
+    var ctor: any = type;
+
+    while(ctor && typeof (<any>ctor).OnDeserialized === "function") {
+        ctorsWithOnDeserializedHook.push(ctor);
+
+        if (ctor.prototype &&
+          ctor.prototype.__proto__ &&
+          ctor.prototype.__proto__.constructor) { /** iff ctor has super class */
+        ctor = ctor.prototype.__proto__.constructor;
+        }
+    }
+
+    for (var ctorIndex = 0; ctorIndex < ctorsWithOnDeserializedHook.length; ctorIndex++) {
+        ctorsWithOnDeserializedHook[ctorIndex].OnDeserialized(instance, json);
     }
 
     return instance;
@@ -455,8 +468,21 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         }
     }
 
-    if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, json);
+    var ctorsWithOnDeserializedHook = new Array<any>();
+    var ctor: any = type;
+
+    while(ctor && typeof (<any>ctor).OnDeserialized === "function") {
+        ctorsWithOnDeserializedHook.push(ctor);
+
+        if (ctor.prototype &&
+          ctor.prototype.__proto__ &&
+          ctor.prototype.__proto__.constructor) { /** iff ctor has super class */
+           ctor = ctor.prototype.__proto__.constructor;
+        }
+    }
+
+    for (var ctorIndex = 0; ctorIndex < ctorsWithOnDeserializedHook.length; ctorIndex++) {
+        ctorsWithOnDeserializedHook[ctorIndex].OnDeserialized(instance, json);
     }
 
     return instance;
