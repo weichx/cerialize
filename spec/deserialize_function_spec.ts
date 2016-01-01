@@ -49,6 +49,30 @@ class Tree {
     @deserializeAs(Tree) trees: Array<Tree>;
 }
 
+class Option {
+    @deserialize public flags: string;
+    @deserialize public required: number;
+    @deserialize public optional: number;
+    @deserialize public bool: boolean;
+    @deserialize public short: string;
+    @deserialize public long: string;
+    @deserialize public description: string;
+}
+
+class Command1 {
+    @deserializeAs(Command1) public commands: Array<Command1>;
+    @deserializeAs(Option) public options: Array<Option>;
+    @deserialize public _name: string;
+    @deserialize public _description: string;
+}
+
+class Command2 {
+  @deserialize public _name: string;
+  @deserialize public _description: string;
+  @deserializeAs(Command2) public commands: Array<Command2>;
+  @deserializeAs(Option) public options: Array<Option>;
+}
+
 var DeserializerFn = function(src : any) : any {
     return 'custom!';
 };
@@ -245,7 +269,7 @@ describe('Deserialize', function () {
 
         var root2 = {
             trees: [{
-                value: "t1" ,
+                value: "t1",
                 trees: new Array<Tree>(),
                 fruits: new Array<Fruit>(),
             }, {
@@ -271,5 +295,90 @@ describe('Deserialize', function () {
         expect(deserialized2.trees[1].trees[0].fruits.length).toBe(0); /* t3 includes fruits trees */
         expect(deserialized2.trees[1].trees[1].trees.length).toBe(0); /* t4 includes empty trees */
         expect(deserialized2.trees[1].trees[1].fruits).toBeUndefined(); /* t4 has no fruits */
+    });
+
+    it("should parse a circular json", function() {
+      let rawCommand = {
+        commands: [
+          { commands: new Array<any>(),
+            options: new Array<Option>(),
+            _execs: {},
+            _allowUnknownOption: false,
+            _args: new Array<String>(),
+            _name: 'profile',
+            _noHelp: false,
+            parent: new Array<any>(),
+            _description: 'get github profile using the provided token',
+            _events: {},
+            _eventsCount: 2 },
+          { commands: new Array<any>(),
+            options: new Array<Option>(),
+            _execs: {},
+            _allowUnknownOption: false,
+            _args: new Array<string>(),
+            _name: 'exec',
+            _noHelp: false,
+            parent: new Array<any>(),
+            _alias: 'ex',
+            _description: 'execute the given remote cmd',
+            _events: {},
+            _eventsCount: 2 } ],
+        options: [
+          { flags: '-V, --version',
+            required: 0,
+            optional: 0,
+            bool: true,
+            short: '-V',
+            long: '--version',
+            description: 'output the version number' },
+          { flags: '-C, --chdir <path>',
+            required: -13,
+            optional: 0,
+            bool: true,
+            short: '-C',
+            long: '--chdir',
+            description: 'change the working directory' },
+          { flags: '-c, --config <path>',
+            required: -14,
+            optional: 0,
+            bool: true,
+            short: '-c',
+            long: '--config',
+            description: 'set config path. defaults to ./deploy.conf' },
+          { flags: '-T, --no-tests',
+            required: 0,
+            optional: 0,
+            bool: false,
+            short: '-T',
+            long: '--no-tests',
+            description: 'ignore test hook' } ],
+        _execs: {},
+        _allowUnknownOption: false,
+        _args: new Array<string>(),
+        _name: 'gulp',
+        _version: '0.0.1',
+        _events: { version: new Array<string>() },
+        _eventsCount: 7,
+        tests: true,
+        rawArgs:
+          [ '/Users/1ambda/.nvm/versions/node/v5.2.0/bin/node',
+            '/Users/1ambda/.nvm/versions/node/v5.2.0/bin/gulp',
+            'con-test' ],
+        args: [ 'con-test' ]
+      };
+
+      let c1 = Deserialize(rawCommand, Command1);
+      let c2 = Deserialize(rawCommand, Command2);
+      /**
+       *  buggy, `c1.commands` is undefined, if we declare `deserializeAs` field at the top of class
+       *  it seems that nested array deserialization is not property working compared to `options` (`options` is not nested)
+       */
+      expect(c1.commands).toBeUndefined(); /* weird */
+      expect(c1.options).toBeDefined();
+      expect(c1.options.length).toEqual(4);
+
+      expect(c2.commands).toBeDefined();
+      expect(c2.commands.length).toEqual(2);
+      expect(c2.options.length).toEqual(4);
     });
 });
