@@ -373,7 +373,6 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
     //invoke our after deserialized callback if provided
     var ctor: any = type;
 
-    // typeof (<any>ctor).OnDeserialized === "function") {
     while(ctor) {
         if (typeof (<any>ctor).OnDeserialized === "function") ctor.OnDeserialized(instance, json);
 
@@ -464,7 +463,6 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
 
     var ctor: any = type;
 
-    // typeof (<any>ctor).OnDeserialized === "function") {
     while(ctor) {
         if (typeof (<any>ctor).OnDeserialized === "function") ctor.OnDeserialized(instance, json);
 
