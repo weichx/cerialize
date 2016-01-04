@@ -57,8 +57,7 @@ export function SnakeCase(str : string) : string {
 export function UnderscoreCase(str : string) : string {
     var STRING_UNDERSCORE_REGEXP_1 = (/([a-z\d])([A-Z]+)/g);
     var STRING_UNDERSCORE_REGEXP_2 = (/\-|\s+/g);
-    return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').
-    replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
+    return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
 }
 
 //convert strings like my_camelCase to my-camel-case
@@ -69,7 +68,7 @@ export function DashCase(str : string) : string {
 }
 
 //gets meta data for a key name, creating a new meta data instance
-//if the input array doesn't arleady define one for the given keyName
+//if the input array doesn't already define one for the given keyName
 function getMetaData(array : Array<MetaData>, keyName : string) : MetaData {
     for (var i = 0; i < array.length; i++) {
         if (array[i].keyName === keyName) {
@@ -218,7 +217,7 @@ class MetaData {
         this.serializedType = null;
     }
 
-    //checks for akey name in a meta data array
+    //checks for a key name in a meta data array
     public static hasKeyName(metadataArray : Array<MetaData>, key : string) : boolean {
         for (var i = 0; i < metadataArray.length; i++) {
             if (metadataArray[i].keyName === key) return true;
@@ -310,6 +309,7 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
 
     //if we dont have meta data just bail out and keep what we have
     if (!metadataArray) {
+        invokeDeserializeHook(instance, json, type);
         return instance;
     }
 
@@ -371,9 +371,7 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
     }
 
     //invoke our after deserialized callback if provided
-    if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, json);
-    }
+    invokeDeserializeHook(instance, json, type);
 
     return instance;
 }
@@ -400,16 +398,27 @@ function deserializeArray(source : Array<any>, type : Function|ISerializable) : 
     return retn;
 }
 
-//deserialize a bit ofjson into an instace of `type`
+function invokeDeserializeHook(instance : any, json : any, type : any) : void {
+    if (type && typeof(type).OnDeserialized === "function") {
+        type.OnDeserialized(instance, json);
+    }
+}
+
+//deserialize a bit of json into an instance of `type`
 function deserializeObject(json : any, type : Function|ISerializable) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
 
     //if we dont have meta data, just decode the json and use that
     if (!metadataArray) {
+        var inst : any = null;
         if (!type) {
-            return JSON.parse(JSON.stringify(json));
+            inst = JSON.parse(JSON.stringify(json));
         }
-        return new (<any>type)(); //todo this probably wrong
+        else {
+            inst = new (<any>type)(); //todo this probably wrong
+            invokeDeserializeHook(inst, json, type);
+        }
+        return inst;
     }
 
     var instance = new (<any>type)();
@@ -430,7 +439,7 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
 
         var source = json[serializedKey];
         var keyName = metadata.keyName;
-        
+
         if (source === void 0) continue;
 
         //if there is a custom deserialize function, use that
@@ -456,9 +465,7 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         }
     }
 
-    if (type && typeof (<any>type).OnDeserialized === "function") {
-        (<any>type).OnDeserialized(instance, json);
-    }
+    invokeDeserializeHook(instance, json, type);
 
     return instance;
 }
