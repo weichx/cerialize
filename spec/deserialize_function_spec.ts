@@ -182,6 +182,7 @@ describe('Deserialize', function () {
         expect(result.x).toBe("custom!");
     });
 
+    //contributed by @1ambda
     it('should deserialize a json including nested empty arrays', function() {
         var root1 = {
             trees: new Array<Tree>(),
@@ -276,6 +277,7 @@ describe('Deserialize', function () {
 
 });
 
+//rest of file contributed by @1ambda
 export interface NoParamConstructor<T> {
     new (): T
 }
@@ -291,7 +293,6 @@ export abstract class Deserializable {
 }
 
 class Car extends Deserializable {
-    // does not work with `deserialize`
     @deserialize public engine: string;
     @deserialize public wheels: number;
 }
