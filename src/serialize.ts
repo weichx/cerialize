@@ -404,6 +404,12 @@ function invokeDeserializeHook(instance : any, json : any, type : any) : void {
     }
 }
 
+function invokeSerializeHook(instance : any, json : any) : void {
+    if (typeof (instance.constructor).OnSerialized === "function") {
+        (instance.constructor).OnSerialized(instance, json);
+    }
+}
+
 //deserialize a bit of json into an instance of `type`
 function deserializeObject(json : any, type : Function|ISerializable) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
@@ -538,9 +544,9 @@ function serializeTypedObject(instance : any) : any {
         }
     }
 
-    if (typeof (<any>instance.constructor).OnSerialized === "function") {
-        (<any>instance.constructor).OnSerialized(instance, json);
-    }
+
+
+    invokeSerializeHook(instance, json);
 
     return json;
 }
@@ -568,6 +574,7 @@ export function Serialize(instance : any) : any {
             //todo this probably needs a key transform
             json[keys[i]] = Serialize(instance[keys[i]]);
         }
+        invokeSerializeHook(instance, json);
         return json;
     }
 
