@@ -182,6 +182,7 @@ describe('Deserialize', function () {
         expect(result.x).toBe("custom!");
     });
 
+    //contributed by @1ambda
     it('should deserialize a json including nested empty arrays', function() {
         var root1 = {
             trees: new Array<Tree>(),
@@ -271,5 +272,40 @@ describe('Deserialize', function () {
         expect(deserialized2.trees[1].trees[0].fruits.length).toBe(0); /* t3 includes fruits trees */
         expect(deserialized2.trees[1].trees[1].trees.length).toBe(0); /* t4 includes empty trees */
         expect(deserialized2.trees[1].trees[1].fruits).toBeUndefined(); /* t4 has no fruits */
+    });
+
+
+});
+
+//rest of file contributed by @1ambda
+export interface NoParamConstructor<T> {
+    new (): T
+}
+
+export abstract class Deserializable {
+    public static deserialize<T>(ctor: NoParamConstructor<T>, json : any): T {
+        return Deserialize(json, ctor);
+    }
+
+    public static deserializeArray<T>(ctor: NoParamConstructor<T>, json : any): Array<T> {
+        return Deserialize(json, ctor);
+    }
+}
+
+class Car extends Deserializable {
+    @deserialize public engine: string;
+    @deserialize public wheels: number;
+}
+
+describe("Deserializable", () => {
+    describe("deserialize", () => {
+        it("should parse Car", () => {
+            let json : any = {engine: "M5", wheels: 4};
+            let c1 = Car.deserialize(Car, json);
+            let c2 = Car.deserialize<Car>(Car, json); // without NoParamConstructor
+
+            expect(c1.engine).toEqual(json.engine);
+            expect(c1.wheels).toEqual(json.wheels);
+        });
     });
 });

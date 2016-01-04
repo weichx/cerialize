@@ -23,9 +23,9 @@ class ExtendedT extends T {
     @deserialize dZ : number;
 }
 
-describe('Inherit Serialization', function() {
+describe('Inherit Serialization', function () {
 
-    it('should inherit serialized properties from a class', function() {
+    it('should inherit serialized properties from a class', function () {
         var instance = new ExtendedT();
         instance.x = 1;
         instance.y = 2;
@@ -36,8 +36,8 @@ describe('Inherit Serialization', function() {
         expect(result.z).toBe(3);
     });
 
-    it('should inherit deserialized properties from a class', function() {
-        var json = { dX: 1, DY: 2, dZ: 3};
+    it('should inherit deserialized properties from a class', function () {
+        var json = { dX: 1, DY: 2, dZ: 3 };
         var instance = Deserialize(json, ExtendedT);
         expect(instance.dX).toBe(1);
         expect(instance.dY).toBe(2);
