@@ -1,18 +1,18 @@
 //Typescript doesnt include es6 map in the standard lib file yet, define it here
 export interface Map<K, V> {
-    clear(): void;
-    delete(key : K): boolean;
-    forEach(callbackfn : (value : V, index : K, map : Map<K, V>) => void, thisArg? : any): void;
-    get(key : K): V;
-    has(key : K): boolean;
-    set(key : K, value? : V): Map<K, V>;
-    size: number;
+    clear() : void;
+    delete(key : K) : boolean;
+    forEach(callbackfn : (value : V, index : K, map : Map<K, V>) => void, thisArg? : any) : void;
+    get(key : K) : V;
+    has(key : K) : boolean;
+    set(key : K, value? : V) : Map<K, V>;
+    size : number;
 }
 
 export interface MapConstructor {
-    new (): Map<any, any>;
-    new <K, V>(): Map<K, V>;
-    prototype: Map<any, any>;
+    new () : Map<any, any>;
+    new <K, V>() : Map<K, V>;
+    prototype : Map<any, any>;
 }
 
 //this library can be used in Node or a browser, make sure our global object points to the right place
@@ -33,8 +33,8 @@ export type Serializer = (value : any) => any;
 export type Deserializer = (value : any) => any;
 
 export interface ISerializable {
-    Serialize?: (value : any) => any;
-    Deserialize?: (json : any, instance? : any) => any;
+    Serialize? : (value : any) => any;
+    Deserialize? : (json : any, instance? : any) => any;
 }
 
 //convert strings like my_camel_string to myCamelString
@@ -80,7 +80,7 @@ function getMetaData(array : Array<MetaData>, keyName : string) : MetaData {
 }
 
 //helper for grabbing the type and keyname from a multi-type input variable
-function getTypeAndKeyName(keyNameOrType : string|Function|ISerializable, keyName : string) : {type: Function, key : string} {
+function getTypeAndKeyName(keyNameOrType : string|Function|ISerializable, keyName : string) : {type : Function, key : string} {
     var type : Function = null;
     var key : string = null;
     if (typeof keyNameOrType === "string") {
@@ -385,7 +385,7 @@ export function DeserializeInto(source : any, type : Function|ISerializable, tar
         return deserializeObjectInto(source, type, target || new (<any>type)());
     }
     else {
-        return target || new (<any>type)();
+        return target || (type && new (<any>type)()) || null;
     }
 }
 
@@ -460,7 +460,7 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         else if (typeof source === "string" && metadata.deserializedType === Date) {
             instance[keyName] = new Date(source);
         }
-        else if (typeof json === "string" && type === RegExp) {
+        else if (typeof source === "string" && metadata.deserializedType === RegExp) {
             instance[keyName] = new RegExp(json);
         }
         else if (source && typeof source === "object") {
@@ -544,8 +544,6 @@ function serializeTypedObject(instance : any) : any {
         }
     }
 
-
-
     invokeSerializeHook(instance, json);
 
     return json;
@@ -581,6 +579,14 @@ export function Serialize(instance : any) : any {
     return instance;
 }
 
+export function GenericDeserialize<T>(json : any, type : new () => T) : T {
+    return <T>Deserialize(json, type);
+}
+
+export function GenericDeserializeInto<T>(json : any, type :new() => T, instance : T) : T {
+    return <T>DeserializeInto(json, type, instance);
+}
+
 //these are used for transforming keys from one format to another
 var serializeKeyTransform : (key : string) => string = null;
 var deserializeKeyTransform : (key : string) => string = null;
@@ -609,4 +615,4 @@ export function SerializableEnumeration(e : any) : void {
 }
 
 //expose the type map
-export { TypeMap as __TypeMap }
+export {TypeMap as __TypeMap}
