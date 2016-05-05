@@ -1,5 +1,7 @@
 ///<reference path="./typings/jasmine.d.ts"/>
-import { __TypeMap, inheritSerialization, deserialize, deserializeAs, Deserialize } from '../src/serialize';
+import {
+    __TypeMap, inheritSerialization, deserialize, deserializeAs, Deserialize, GenericDeserialize, GenericDeserializeInto
+} from '../src/serialize';
 
 class T1 {
     public x : number;
@@ -274,6 +276,24 @@ describe('Deserialize', function () {
         expect(deserialized2.trees[1].trees[1].fruits).toBeUndefined(); /* t4 has no fruits */
     });
 
+});
+
+describe('Deserialize generics', function () {
+
+    it('should handle a generic deserialize', function () {
+        var tree = GenericDeserialize({value: "someValue"}, Tree);
+        expect((tree instanceof  Tree)).toBe(true);
+        expect(tree.value).toBe("someValue");
+    });
+
+    it('should handle a generic deserializeInto', function () {
+        var tree = new Tree();
+        tree.value = 'hello';
+        var tree2 = GenericDeserializeInto({value: "someValue"}, Tree, tree);
+        expect((tree2 instanceof  Tree)).toBe(true);
+        expect(tree2).toBe(tree);
+        expect(tree.value).toBe("someValue");
+    });
 
 });
 

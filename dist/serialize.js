@@ -28,8 +28,7 @@ exports.SnakeCase = SnakeCase;
 function UnderscoreCase(str) {
     var STRING_UNDERSCORE_REGEXP_1 = (/([a-z\d])([A-Z]+)/g);
     var STRING_UNDERSCORE_REGEXP_2 = (/\-|\s+/g);
-    return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').
-        replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
+    return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
 }
 exports.UnderscoreCase = UnderscoreCase;
 //convert strings like my_camelCase to my-camel-case
@@ -40,7 +39,7 @@ function DashCase(str) {
 }
 exports.DashCase = DashCase;
 //gets meta data for a key name, creating a new meta data instance
-//if the input array doesn't arleady define one for the given keyName
+//if the input array doesn't already define one for the given keyName
 function getMetaData(array, keyName) {
     for (var i = 0; i < array.length; i++) {
         if (array[i].keyName === keyName) {
@@ -188,7 +187,7 @@ var MetaData = (function () {
         this.deserializedType = null;
         this.serializedType = null;
     }
-    //checks for akey name in a meta data array
+    //checks for a key name in a meta data array
     MetaData.hasKeyName = function (metadataArray, key) {
         for (var i = 0; i < metadataArray.length; i++) {
             if (metadataArray[i].keyName === key)
@@ -275,6 +274,7 @@ function deserializeObjectInto(json, type, instance) {
     }
     //if we dont have meta data just bail out and keep what we have
     if (!metadataArray) {
+        invokeDeserializeHook(instance, json, type);
         return instance;
     }
     //for each property in meta data, try to hydrate that property with its corresponding json value
@@ -325,9 +325,7 @@ function deserializeObjectInto(json, type, instance) {
         }
     }
     //invoke our after deserialized callback if provided
-    if (type && typeof type.OnDeserialized === "function") {
-        type.OnDeserialized(instance, json);
-    }
+    invokeDeserializeHook(instance, json, type);
     return instance;
 }
 //takes some json, a type, and a target object and deserializes the json into that object
@@ -339,7 +337,7 @@ function DeserializeInto(source, type, target) {
         return deserializeObjectInto(source, type, target || new type());
     }
     else {
-        return target || new type();
+        return target || (type && new type()) || null;
     }
 }
 exports.DeserializeInto = DeserializeInto;
@@ -351,15 +349,30 @@ function deserializeArray(source, type) {
     }
     return retn;
 }
-//deserialize a bit ofjson into an instace of `type`
+function invokeDeserializeHook(instance, json, type) {
+    if (type && typeof (type).OnDeserialized === "function") {
+        type.OnDeserialized(instance, json);
+    }
+}
+function invokeSerializeHook(instance, json) {
+    if (typeof (instance.constructor).OnSerialized === "function") {
+        (instance.constructor).OnSerialized(instance, json);
+    }
+}
+//deserialize a bit of json into an instance of `type`
 function deserializeObject(json, type) {
     var metadataArray = TypeMap.get(type);
     //if we dont have meta data, just decode the json and use that
     if (!metadataArray) {
+        var inst = null;
         if (!type) {
-            return JSON.parse(JSON.stringify(json));
+            inst = JSON.parse(JSON.stringify(json));
         }
-        return new type(); //todo this probably wrong
+        else {
+            inst = new type(); //todo this probably wrong
+            invokeDeserializeHook(inst, json, type);
+        }
+        return inst;
     }
     var instance = new type();
     //for each tagged property on the source type, try to deserialize it
@@ -387,7 +400,7 @@ function deserializeObject(json, type) {
         else if (typeof source === "string" && metadata.deserializedType === Date) {
             instance[keyName] = new Date(source);
         }
-        else if (typeof json === "string" && type === RegExp) {
+        else if (typeof source === "string" && metadata.deserializedType === RegExp) {
             instance[keyName] = new RegExp(json);
         }
         else if (source && typeof source === "object") {
@@ -397,9 +410,7 @@ function deserializeObject(json, type) {
             instance[keyName] = source;
         }
     }
-    if (type && typeof type.OnDeserialized === "function") {
-        type.OnDeserialized(instance, json);
-    }
+    invokeDeserializeHook(instance, json, type);
     return instance;
 }
 //deserializes a bit of json into a `type`
@@ -459,9 +470,7 @@ function serializeTypedObject(instance) {
             }
         }
     }
-    if (typeof instance.constructor.OnSerialized === "function") {
-        instance.constructor.OnSerialized(instance, json);
-    }
+    invokeSerializeHook(instance, json);
     return json;
 }
 //take an instance of something and spit out some json
@@ -484,11 +493,20 @@ function Serialize(instance) {
             //todo this probably needs a key transform
             json[keys[i]] = Serialize(instance[keys[i]]);
         }
+        invokeSerializeHook(instance, json);
         return json;
     }
     return instance;
 }
 exports.Serialize = Serialize;
+function GenericDeserialize(json, type) {
+    return Deserialize(json, type);
+}
+exports.GenericDeserialize = GenericDeserialize;
+function GenericDeserializeInto(json, type, instance) {
+    return DeserializeInto(json, type, instance);
+}
+exports.GenericDeserializeInto = GenericDeserializeInto;
 //these are used for transforming keys from one format to another
 var serializeKeyTransform = null;
 var deserializeKeyTransform = null;
