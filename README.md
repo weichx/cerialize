@@ -162,6 +162,22 @@ class Admin extends User {
 
 }
 ```
+##Generics
+Typescript generics unfortunately do not give any runtime type information, but they are still helpful in that you don not need to cast the output of a `Deserialize` function to a given type when the type can be inferred by the compiler. Cerialize supports generics through `GenericDeserialize` and `GenericDeserializeInto`. These two functions work exactly the same as their non generic counterparts but have a typed signature. 
+```typescript
+import { GenericDeserialize, GenericDeserializeInto } from 'cerialize';
+
+var tree = GenericDeserialize({value: "someValue"}, Tree);
+expect((tree instanceof Tree)).toBe(true);
+expect(tree.value).toBe("someValue");
+
+var tree = new Tree();
+tree.value = 'hello';
+var tree2 = GenericDeserializeInto({value: "someValue"}, Tree, tree);
+expect((tree2 instanceof Tree)).toBe(true);
+expect(tree2).toBe(tree);
+expect(tree.value).toBe("someValue");
+```
 
 ## Customizing key transforms
 Often your server and your client will have different property naming conventions. For instance, Rails / Ruby generally expects objects to have properties that are under_score_cased while most JS authors prefer camelCase. You can tell Cerialize to use a certain key transform automatically when serializing and deserializing by calling `DeserializeKeysFrom(transform : (key : string) => string)` and `SerializeKeysTo(transform : (key : string) => string)`. A handful of transform functions are provided in this package or you can define your own function conforming to `(key : string) => string`.
