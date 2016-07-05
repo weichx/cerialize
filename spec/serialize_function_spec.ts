@@ -1,5 +1,5 @@
 ///<reference path="./typings/jasmine.d.ts"/>
-import { __TypeMap, serialize, serializeAs, Serialize } from '../src/serialize';
+import {__TypeMap, serialize, serializeAs, Serialize, serializeIndexable} from '../src/serialize';
 
 class Vector3 {
     @serialize x : number;
@@ -177,4 +177,31 @@ describe('Serialize', function () {
         var result = Serialize(test);
         expect(result.x).toBe('custom!');
     });
+
+    it('should serialize indexable objects', function() {
+        class Y {
+
+            @serialize thing : string;
+
+            constructor(str : string) {
+                this.thing = str;
+            }
+
+        }
+        class X {
+            @serializeIndexable(Y) yMap : any;
+        }
+
+        var x = new X();
+
+        x.yMap = {
+            1: new Y('one'),
+            2: new Y('two')
+        };
+
+        var json : any = Serialize(x);
+        expect(json.yMap[1].thing).toBe('one');
+        expect(json.yMap[2].thing).toBe('two');
+    });
+
 });

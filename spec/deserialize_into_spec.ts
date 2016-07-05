@@ -1,8 +1,8 @@
 ///<reference path="./typings/jasmine.d.ts"/>
-import { __TypeMap,
+import {
     deserialize,
     deserializeAs,
-    autoserialize,
+    deserializeIndexable,
     autoserializeAs,
     DeserializeInto
 } from '../src/serialize';
@@ -45,7 +45,8 @@ class JsonSubArrayTest {
 }
 
 class JSONSubObjectTest {
-    @deserialize public  obj : any;
+    @deserialize public obj : any;
+
     constructor() {
         this.obj = {
             subobject: {
@@ -201,7 +202,7 @@ describe('DeserializeInto', function () {
         var source = new JSONSubObjectTest();
         var originalSubObject = source.obj.subobject;
         expect(source.obj.subobject.c).toBeUndefined();
-        var json = { obj: { subobject: { a: 10 , b: 20, c: 30} } };
+        var json = { obj: { subobject: { a: 10, b: 20, c: 30 } } };
         var result = DeserializeInto(json, JSONSubObjectTest, source);
         expect(result).toEqual(source);
         expect(result.obj.subobject).toEqual(originalSubObject);
@@ -248,6 +249,35 @@ describe('DeserializeInto', function () {
         expect(result.children[1].x).toEqual("2");
         expect(result.children[2].x).toEqual("3");
         expect(result.children[3].x).toEqual("4");
+    });
+
+    it("Should deserialize indexable object", function () {
+
+        class Y {
+            @deserialize thing : string;
+        }
+
+        class X {
+            @deserializeIndexable(Y) yMap : any;
+
+            constructor() {
+                this.yMap = {};
+            }
+        }
+
+        var map : any = {
+            yMap: {
+                1: { thing: '1' },
+                2: { thing: '2' }
+            }
+        };
+
+        var x = new X();
+        var yMap = x.yMap;
+        DeserializeInto(map, X, x);
+        expect(x.yMap).toBe(yMap);
+        expect(x.yMap[1] instanceof (Y)).toBe(true);
+        expect(x.yMap[2] instanceof (Y)).toBe(true);
     });
 });
 

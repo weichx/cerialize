@@ -1,6 +1,7 @@
 ///<reference path="./typings/jasmine.d.ts"/>
 import {
-    __TypeMap, inheritSerialization, deserialize, deserializeAs, Deserialize, GenericDeserialize, GenericDeserializeInto
+    deserialize, deserializeAs, Deserialize, GenericDeserialize,
+    GenericDeserializeInto, deserializeIndexable
 } from '../src/serialize';
 
 class T1 {
@@ -274,6 +275,28 @@ describe('Deserialize', function () {
         expect(deserialized2.trees[1].trees[0].fruits.length).toBe(0); /* t3 includes fruits trees */
         expect(deserialized2.trees[1].trees[1].trees.length).toBe(0); /* t4 includes empty trees */
         expect(deserialized2.trees[1].trees[1].fruits).toBeUndefined(); /* t4 has no fruits */
+    });
+
+    it("Should deserialize indexable object", function () {
+
+        class Y {
+            @deserialize thing : string;
+        }
+
+        class X {
+            @deserializeIndexable(Y) yMap : any;
+        }
+
+        var map : any = {
+            yMap: {
+                1: { thing: '1' },
+                2: { thing: '2' }
+            }
+        };
+
+        var x : X = Deserialize(map, X);
+        expect(x.yMap[1] instanceof(Y)).toBe(true);
+        expect(x.yMap[2] instanceof(Y)).toBe(true);
     });
 
 });
