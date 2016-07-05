@@ -100,6 +100,7 @@ class Tree {
   @deserialize public species : string; 
   @deserializeAs(Leaf) public leafs : Array<Leaf>;  //arrays do not need extra specifications, just a type.
   @deserializeAs(Bark, 'barkType') public bark : Bark;  //using custom type and custom key name
+  @deserializeIndexable(Leaf) public leafMap : {[idx : string] : Leaf}; //use an object as a map
 }
 
 class Leaf {
@@ -114,7 +115,8 @@ class Bark {
 var json = {
   species: 'Oak',
   barkType: { roughness: 1 },
-  leafs: [ {color: 'red', blooming: false, bloomedAt: 'Mon Dec 07 2015 11:48:20 GMT-0500 (EST)' } ]
+  leafs: [ {color: 'red', blooming: false, bloomedAt: 'Mon Dec 07 2015 11:48:20 GMT-0500 (EST)' } ],
+  leafMap: { type1: { some leaf data }, type2: { some leaf data } }
 }
 var tree = Deserialize(json, Tree);
 ```
@@ -127,14 +129,16 @@ It is also possible to re-use existing objects when deserializing with `Deserial
   var localTree = new Tree();
   var leaf = new Leaf();
   leaf.color = 'blue';
+  localTree.leafMap = { type1: new Leaf(), type2: new Leaf() }
   localTree.leafs[0] = leaf;
   DeserializeInto(json, Tree, localTree)
   expect(localTree.leafs[0]).toEqual(leaf) //true, the leaf instance was reused but has a differnt color
   expect(localTree.leafs[0].color).toEqual('red'); //red comes from the json defined earlier
+  expect(localTree.leafMap['type1']).color).toEqual('red') //this is how `@xxxIndexable` works
 ```
 
 ## <a name="autoserialize"></a> Serializing and Deserializing
-If you want the same behavior for a property when serializing and deserializing, you can either tag that property with a `@serialize` and `@deserialize` (or their `As` variants) or you can use `@autoserialize` and `@autoserializeAs(keyNameOrType, keyName?)` which will do this in a single annotation and behave exactly the same as `@serialize` and `@deserialize`.
+If you want the same behavior for a property when serializing and deserializing, you can either tag that property with a `@serialize` and `@deserialize` (or their `As` variants) or you can use `@autoserialize` and `@autoserializeAs(keyNameOrType, keyName?)` which will do this in a single annotation and behave exactly the same as `@serialize` and `@deserialize`. `@autoserializeIndexable`(and friends) will retain type information while allowing an object to be used as a dictionary, without this the system would treat your input object as whatever type you provide instead of a map of objects of that type.
 
 ## Callbacks
 

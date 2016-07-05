@@ -161,6 +161,7 @@ export function serializeAs(keyNameOrType : string|Serializer|ISerializable, key
     };
 }
 
+//Supports serializing of dictionary-like map objects, ie: { x: {}, y: {} }
 export function serializeIndexable(type : Serializer|ISerializable, keyName? : string) : any {
     if (!type) return;
     return function (target : any, actualKeyName : string) : any {
@@ -200,6 +201,7 @@ export function deserializeAs(keyNameOrType : string|Function|ISerializable, key
     };
 }
 
+//Supports deserializing of dictionary-like map objects, ie: { x: {}, y: {} }
 export function deserializeIndexable(type : Function|ISerializable, keyName? : string) : any {
     if (!type) return;
     var key = keyName;
@@ -241,6 +243,7 @@ export function autoserializeAs(keyNameOrType : string|Function|ISerializable, k
     };
 }
 
+//Supports serializing/deserializing of dictionary-like map objects, ie: { x: {}, y: {} }
 export function autoserializeIndexable(type : Function|ISerializable, keyName? : string) : any {
     if (!type) return;
     var key = keyName;
