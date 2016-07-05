@@ -30,6 +30,7 @@ export declare function autoserialize(target: any, keyName: string): any;
 export declare function serializeAs(keyNameOrType: string | Serializer | ISerializable, keyName?: string): any;
 export declare function deserializeAs(keyNameOrType: string | Function | ISerializable, keyName?: string): any;
 export declare function autoserializeAs(keyNameOrType: string | Function | ISerializable, keyName?: string): any;
+export declare function autoserializeIndexable(type: Function | ISerializable, keyName?: string): any;
 export declare function DeserializeInto(source: any, type: Function | ISerializable, target: any): any;
 export declare function Deserialize(json: any, type?: Function | ISerializable): any;
 export declare function Serialize(instance: any): any;

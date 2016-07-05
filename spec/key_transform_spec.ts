@@ -25,6 +25,11 @@ class T1 {
 
 describe('Key Transforms', function () {
 
+    afterEach(function () {
+        DeserializeKeysFrom(CamelCase);
+        SerializeKeysTo(CamelCase);
+    });
+    
     it('should just clone key name if no transform functions are set', function() {
         SerializeKeysTo(null);
         DeserializeKeysFrom(null);
@@ -69,4 +74,5 @@ describe('Key Transforms', function () {
         expect(result.myVar).toBe(10);
         expect(result.other).toBe(11);
     });
+
 });

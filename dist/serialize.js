@@ -176,6 +176,25 @@ function autoserializeAs(keyNameOrType, keyName) {
     };
 }
 exports.autoserializeAs = autoserializeAs;
+function autoserializeIndexable(type, keyName) {
+    if (!type)
+        return;
+    var key = keyName;
+    return function (target, actualKeyName) {
+        if (!target || !actualKeyName)
+            return;
+        var metaDataList = TypeMap.get(target.constructor) || [];
+        var metadata = getMetaData(metaDataList, actualKeyName);
+        var serialKey = (key) ? key : actualKeyName;
+        metadata.deserializedKey = serialKey;
+        metadata.deserializedType = type;
+        metadata.serializedKey = serialKey;
+        metadata.serializedType = type;
+        metadata.indexable = true;
+        TypeMap.set(target.constructor, metaDataList);
+    };
+}
+exports.autoserializeIndexable = autoserializeIndexable;
 //helper class to contain serialization meta data for a property, each property
 //in a type tagged with a serialization annotation will contain an array of these
 //objects each describing one property
@@ -186,6 +205,7 @@ var MetaData = (function () {
         this.deserializedKey = null;
         this.deserializedType = null;
         this.serializedType = null;
+        this.indexable = false;
     }
     //checks for a key name in a meta data array
     MetaData.hasKeyName = function (metadataArray, key) {
@@ -202,6 +222,7 @@ var MetaData = (function () {
         metadata.serializedKey = data.serializedKey;
         metadata.serializedType = data.serializedType;
         metadata.deserializedType = data.deserializedType;
+        metadata.indexable = data.indexable;
         return metadata;
     };
     return MetaData;
@@ -318,7 +339,12 @@ function deserializeObjectInto(json, type, instance) {
             instance[keyName] = new RegExp(source);
         }
         else if (source && typeof source === "object") {
-            instance[keyName] = deserializeObjectInto(source, metadata.deserializedType, instance[keyName]);
+            if (metadata.indexable) {
+                instance[keyName] = deserializeIndexableInto(source, metadata.deserializedType, instance[keyName]);
+            }
+            else {
+                instance[keyName] = deserializeObjectInto(source, metadata.deserializedType, instance[keyName]);
+            }
         }
         else {
             instance[keyName] = source;
@@ -404,7 +430,12 @@ function deserializeObject(json, type) {
             instance[keyName] = new RegExp(json);
         }
         else if (source && typeof source === "object") {
-            instance[keyName] = deserializeObject(source, metadata.deserializedType);
+            if (metadata.indexable) {
+                instance[keyName] = deserializeIndexable(source, metadata.deserializedType);
+            }
+            else {
+                instance[keyName] = deserializeObject(source, metadata.deserializedType);
+            }
         }
         else {
             instance[keyName] = source;
@@ -412,6 +443,22 @@ function deserializeObject(json, type) {
     }
     invokeDeserializeHook(instance, json, type);
     return instance;
+}
+function deserializeIndexable(source, type) {
+    var retn = {};
+    //todo apply key transformation here?
+    Object.keys(source).forEach(function (key) {
+        retn[key] = deserializeObject(source[key], type);
+    });
+    return retn;
+}
+function deserializeIndexableInto(source, type, instance) {
+    var retn = {};
+    //todo apply key transformation here?
+    Object.keys(source).forEach(function (key) {
+        retn[key] = deserializeObjectInto(source[key], type, instance);
+    });
+    return retn;
 }
 //deserializes a bit of json into a `type`
 function Deserialize(json, type) {
