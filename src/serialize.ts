@@ -660,7 +660,11 @@ export function Serialize(instance : any) : any {
         return serializeTypedObject(instance);
     }
 
-    if (instance instanceof Date || instance instanceof RegExp) {
+    if (instance instanceof Date) {
+        return instance.toISOString();
+    }
+
+    if(instance instanceof RegExp) {
         return instance.toString();
     }
 

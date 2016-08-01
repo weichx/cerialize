@@ -135,6 +135,28 @@ function serializeAs(keyNameOrType, keyName) {
     };
 }
 exports.serializeAs = serializeAs;
+//Supports serializing of dictionary-like map objects, ie: { x: {}, y: {} }
+function serializeIndexable(type, keyName) {
+    if (!type)
+        return;
+    return function (target, actualKeyName) {
+        if (!target || !actualKeyName)
+            return;
+        var metaDataList = TypeMap.get(target.constructor) || [];
+        var metadata = getMetaData(metaDataList, actualKeyName);
+        metadata.serializedKey = (keyName) ? keyName : actualKeyName;
+        metadata.serializedType = type;
+        metadata.indexable = true;
+        //this allows the type to be a stand alone function instead of a class
+        if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
+            metadata.serializedType = {
+                Serialize: type
+            };
+        }
+        TypeMap.set(target.constructor, metaDataList);
+    };
+}
+exports.serializeIndexable = serializeIndexable;
 //deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 function deserializeAs(keyNameOrType, keyName) {
     if (!keyNameOrType)
@@ -157,6 +179,28 @@ function deserializeAs(keyNameOrType, keyName) {
     };
 }
 exports.deserializeAs = deserializeAs;
+//Supports deserializing of dictionary-like map objects, ie: { x: {}, y: {} }
+function deserializeIndexable(type, keyName) {
+    if (!type)
+        return;
+    var key = keyName;
+    return function (target, actualKeyName) {
+        if (!target || !actualKeyName)
+            return;
+        var metaDataList = TypeMap.get(target.constructor) || [];
+        var metadata = getMetaData(metaDataList, actualKeyName);
+        metadata.deserializedKey = (key) ? key : actualKeyName;
+        metadata.deserializedType = type;
+        metadata.indexable = true;
+        if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
+            metadata.deserializedType = {
+                Deserialize: type
+            };
+        }
+        TypeMap.set(target.constructor, metaDataList);
+    };
+}
+exports.deserializeIndexable = deserializeIndexable;
 //serializes and deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 function autoserializeAs(keyNameOrType, keyName) {
     if (!keyNameOrType)
@@ -172,10 +216,16 @@ function autoserializeAs(keyNameOrType, keyName) {
         metadata.deserializedType = type;
         metadata.serializedKey = serialKey;
         metadata.serializedType = type;
+        if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
+            metadata.deserializedType = {
+                Deserialize: type
+            };
+        }
         TypeMap.set(target.constructor, metaDataList);
     };
 }
 exports.autoserializeAs = autoserializeAs;
+//Supports serializing/deserializing of dictionary-like map objects, ie: { x: {}, y: {} }
 function autoserializeIndexable(type, keyName) {
     if (!type)
         return;
@@ -191,6 +241,11 @@ function autoserializeIndexable(type, keyName) {
         metadata.serializedKey = serialKey;
         metadata.serializedType = type;
         metadata.indexable = true;
+        if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
+            metadata.deserializedType = {
+                Deserialize: type
+            };
+        }
         TypeMap.set(target.constructor, metaDataList);
     };
 }
@@ -340,7 +395,7 @@ function deserializeObjectInto(json, type, instance) {
         }
         else if (source && typeof source === "object") {
             if (metadata.indexable) {
-                instance[keyName] = deserializeIndexableInto(source, metadata.deserializedType, instance[keyName]);
+                instance[keyName] = deserializeIndexableObjectInto(source, metadata.deserializedType, instance[keyName]);
             }
             else {
                 instance[keyName] = deserializeObjectInto(source, metadata.deserializedType, instance[keyName]);
@@ -354,6 +409,25 @@ function deserializeObjectInto(json, type, instance) {
     invokeDeserializeHook(instance, json, type);
     return instance;
 }
+//deserializes a bit of json into a `type`
+function Deserialize(json, type) {
+    if (Array.isArray(json)) {
+        return deserializeArray(json, type);
+    }
+    else if (json && typeof json === "object") {
+        return deserializeObject(json, type);
+    }
+    else if (typeof json === "string" && type === Date) {
+        return new Date(json);
+    }
+    else if (typeof json === "string" && type === RegExp) {
+        return new RegExp(json);
+    }
+    else {
+        return json;
+    }
+}
+exports.Deserialize = Deserialize;
 //takes some json, a type, and a target object and deserializes the json into that object
 function DeserializeInto(source, type, target) {
     if (Array.isArray(source)) {
@@ -431,7 +505,7 @@ function deserializeObject(json, type) {
         }
         else if (source && typeof source === "object") {
             if (metadata.indexable) {
-                instance[keyName] = deserializeIndexable(source, metadata.deserializedType);
+                instance[keyName] = deserializeIndexableObject(source, metadata.deserializedType);
             }
             else {
                 instance[keyName] = deserializeObject(source, metadata.deserializedType);
@@ -444,7 +518,7 @@ function deserializeObject(json, type) {
     invokeDeserializeHook(instance, json, type);
     return instance;
 }
-function deserializeIndexable(source, type) {
+function deserializeIndexableObject(source, type) {
     var retn = {};
     //todo apply key transformation here?
     Object.keys(source).forEach(function (key) {
@@ -452,33 +526,13 @@ function deserializeIndexable(source, type) {
     });
     return retn;
 }
-function deserializeIndexableInto(source, type, instance) {
-    var retn = {};
+function deserializeIndexableObjectInto(source, type, instance) {
     //todo apply key transformation here?
     Object.keys(source).forEach(function (key) {
-        retn[key] = deserializeObjectInto(source[key], type, instance);
+        instance[key] = deserializeObjectInto(source[key], type, instance[key]);
     });
-    return retn;
+    return instance;
 }
-//deserializes a bit of json into a `type`
-function Deserialize(json, type) {
-    if (Array.isArray(json)) {
-        return deserializeArray(json, type);
-    }
-    else if (json && typeof json === "object") {
-        return deserializeObject(json, type);
-    }
-    else if (typeof json === "string" && type === Date) {
-        return new Date(json);
-    }
-    else if (typeof json === "string" && type === RegExp) {
-        return new RegExp(json);
-    }
-    else {
-        return json;
-    }
-}
-exports.Deserialize = Deserialize;
 //take an array and spit out json
 function serializeArray(source) {
     var serializedArray = new Array(source.length);
@@ -508,6 +562,7 @@ function serializeTypedObject(instance) {
             json[serializedKey] = serializeArray(source);
         }
         else if (metadata.serializedType && typeof metadata.serializedType.Serialize === "function") {
+            //todo -- serializeIndexableObject probably isn't needed because of how serialize works
             json[serializedKey] = metadata.serializedType.Serialize(source);
         }
         else {
@@ -530,7 +585,10 @@ function Serialize(instance) {
     if (instance.constructor && TypeMap.has(instance.constructor)) {
         return serializeTypedObject(instance);
     }
-    if (instance instanceof Date || instance instanceof RegExp) {
+    if (instance instanceof Date) {
+        return instance.toISOString();
+    }
+    if (instance instanceof RegExp) {
         return instance.toString();
     }
     if (instance && typeof instance === 'object' || typeof instance === 'function') {

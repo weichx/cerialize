@@ -69,7 +69,7 @@ describe('Serialize', function () {
 
     it('should stringify a date', function () {
         var d = new Date();
-        expect(Serialize(d)).toBe(d.toString());
+        expect(Serialize(d)).toBe(d.toISOString());
     });
 
     it('should stringify a regex', function () {
@@ -91,7 +91,7 @@ describe('Serialize', function () {
         expect(serialized).not.toBe(obj);
         expect(serialized.one).toBe(1);
         expect(serialized.yep).toBe(true);
-        expect(serialized.now).toBe(obj.now.toString());
+        expect(serialized.now).toBe(obj.now.toISOString());
     });
 
     it('should serialize a nested untyped object', function () {
