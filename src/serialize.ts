@@ -596,20 +596,25 @@ function deserializeIndexableObjectInto(source : any, type : Function | ISeriali
 }
 
 //take an array and spit out json
-function serializeArray(source : Array<any>) : Array<any> {
+function serializeArray(source : Array<any>, type? : Function|ISerializable) : Array<any> {
     var serializedArray : Array<any> = new Array(source.length);
     for (var j = 0; j < source.length; j++) {
-        serializedArray[j] = Serialize(source[j]);
+        serializedArray[j] = Serialize(source[j], type);
     }
     return serializedArray;
 }
 
 //take an instance of something and try to spit out json for it based on property annotaitons
-function serializeTypedObject(instance : any) : any {
+function serializeTypedObject(instance : any, type? : Function|ISerializable) : any {
 
     var json : any = {};
 
-    var metadataArray : Array<MetaData> = TypeMap.get(instance.constructor);
+    var metadataArray : Array<MetaData>;
+    if (type) {
+        metadataArray = TypeMap.get(type);
+    } else {
+        metadataArray = TypeMap.get(instance.constructor);
+    }
 
     for (var i = 0; i < metadataArray.length; i++) {
         var metadata = metadataArray[i];
@@ -649,11 +654,15 @@ function serializeTypedObject(instance : any) : any {
 }
 
 //take an instance of something and spit out some json
-export function Serialize(instance : any) : any {
+export function Serialize(instance : any, type? : Function|ISerializable) : any {
     if (instance === null || instance === void 0) return null;
 
     if (Array.isArray(instance)) {
-        return serializeArray(instance);
+        return serializeArray(instance, type);
+    }
+
+    if (type && TypeMap.has(type)) {
+        return serializeTypedObject(instance, type);
     }
 
     if (instance.constructor && TypeMap.has(instance.constructor)) {
