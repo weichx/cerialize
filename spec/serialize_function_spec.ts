@@ -127,6 +127,15 @@ describe('Serialize', function () {
         expect(serialized.z).toBe(void 0);
     });
 
+    it('should serialize object with the given type', function () {
+        var test = {x: 1, y: 2, z: 3};
+        var serialized = Serialize(test, Vector3);
+        expect((serialized instanceof Vector3)).toBe(false);
+        expect(serialized.x).toBe(test.x);
+        expect(serialized.y).toBe(test.y);
+        expect(serialized.z).toBe(void 0);
+    });
+
     it('should serialize a typed object with a typed array', function () {
         var test = new TArray(10, 11, [new Vector3(1, 2), new Vector3(2, 1)]);
         var serialized = Serialize(test);

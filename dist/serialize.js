@@ -1,3 +1,4 @@
+"use strict";
 var win = null;
 try {
     win = window;
@@ -281,7 +282,7 @@ var MetaData = (function () {
         return metadata;
     };
     return MetaData;
-})();
+}());
 //merges two primitive objects recursively, overwriting or defining properties on
 //`instance` as they defined in `json`. Works on objects, arrays and primitives
 function mergePrimitiveObjects(instance, json) {
@@ -534,17 +535,23 @@ function deserializeIndexableObjectInto(source, type, instance) {
     return instance;
 }
 //take an array and spit out json
-function serializeArray(source) {
+function serializeArray(source, type) {
     var serializedArray = new Array(source.length);
     for (var j = 0; j < source.length; j++) {
-        serializedArray[j] = Serialize(source[j]);
+        serializedArray[j] = Serialize(source[j], type);
     }
     return serializedArray;
 }
 //take an instance of something and try to spit out json for it based on property annotaitons
-function serializeTypedObject(instance) {
+function serializeTypedObject(instance, type) {
     var json = {};
-    var metadataArray = TypeMap.get(instance.constructor);
+    var metadataArray;
+    if (type) {
+        metadataArray = TypeMap.get(type);
+    }
+    else {
+        metadataArray = TypeMap.get(instance.constructor);
+    }
     for (var i = 0; i < metadataArray.length; i++) {
         var metadata = metadataArray[i];
         if (!metadata.serializedKey)
@@ -576,11 +583,14 @@ function serializeTypedObject(instance) {
     return json;
 }
 //take an instance of something and spit out some json
-function Serialize(instance) {
+function Serialize(instance, type) {
     if (instance === null || instance === void 0)
         return null;
     if (Array.isArray(instance)) {
-        return serializeArray(instance);
+        return serializeArray(instance, type);
+    }
+    if (type && TypeMap.has(type)) {
+        return serializeTypedObject(instance, type);
     }
     if (instance.constructor && TypeMap.has(instance.constructor)) {
         return serializeTypedObject(instance);

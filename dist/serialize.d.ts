@@ -35,7 +35,7 @@ export declare function autoserializeAs(keyNameOrType: string | Function | ISeri
 export declare function autoserializeIndexable(type: Function | ISerializable, keyName?: string): any;
 export declare function Deserialize(json: any, type?: Function | ISerializable): any;
 export declare function DeserializeInto(source: any, type: Function | ISerializable, target: any): any;
-export declare function Serialize(instance: any): any;
+export declare function Serialize(instance: any, type?: Function | ISerializable): any;
 export declare function GenericDeserialize<T>(json: any, type: new () => T): T;
 export declare function GenericDeserializeInto<T>(json: any, type: new () => T, instance: T): T;
 export declare function DeserializeKeysFrom(transform: (key: string) => string): void;
