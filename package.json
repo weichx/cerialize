@@ -12,7 +12,7 @@
   "author": "Matt Weichselbaum",
   "license": "MIT",
   "repository": "https://github.com/weichx/cerialize",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "main": "index.js",
   "typings": "dist/serialize.d.ts",
   "devDependencies": {
