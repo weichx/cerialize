@@ -68,7 +68,7 @@ class Person {
 
 After defining which properties should be serialized, deserialized, or both, the actual marshalling is handled by a trio of simple functions.
 
-* `Serialize(value)` takes in a value and spits out a serialized value using the algorithm described in [Serializing Objects](#serializing_objects)
+* `Serialize(value, classType?)` takes in a value and spits out a serialized value using the algorithm described in [Serializing Objects](#serializing_objects)
 
 * `Deserialize(rawObject, classType)` takes an untyped js object or array and a class type to deserialize it into and returns a new instance of `classType` with all the deserialized properties from `rawObject` using the algorithm described in [Deserializing Objects](#deserializing_new_instances)
 
@@ -76,20 +76,47 @@ After defining which properties should be serialized, deserialized, or both, the
 
 ## <a name="serializing_objects"></a>Serializing Objects
 
-Calling `Serialize(value)` on something will serialize it into a pre-stringified json object. You must call `JSON.stringify` to make it a string. Serialization works through the following alorithm:
+Calling `Serialize(value, classType?)` on something will serialize it into a pre-stringified json object. You must call `JSON.stringify` to make it a string. Serialization works through the following alorithm:
 
-1. If `value` is an array, all items in the array will be have `Serialize` called on them. 
+1. If `value` is an array, all items in the array will be have `Serialize` called on them (with `classType` argument if given). 
 
-2. If `value` is an object that has any properties marked with a serializtion annotation, or inherits any properties marked for serialization, only those properties marked for serialization will be serialized. Anything without an annotation will not have `Serialize` called on them.
+2. If `classType` is given, the `value` is considered like an instance of this object class (see `3` and `4`).
 
-3. If `value` is an object that does not have any properties marked for serialization and does not inherit any properties marked for serialization, all keys in that object will be serialized as primtives, unless the value at a given key is an instance of a class with serialized properties, in which case it will be serialized as described above in 2.
+3. If `value` is an object that has any properties marked with a serializtion annotation, or inherits any properties marked for serialization, only those properties marked for serialization will be serialized. Anything without an annotation will not have `Serialize` called on them.
 
-4. If `value` is a primitive, it will be returned as is.
+4. If `value` is an object that does not have any properties marked for serialization and does not inherit any properties marked for serialization, all keys in that object will be serialized as primtives, unless the value at a given key is an instance of a class with serialized properties, in which case it will be serialized as described above in 2.
 
-5. If `value` is `undefined`, `Serialize` will return `null`.
+5. If `value` is a primitive, it will be returned as is.
+
+6. If `value` is `undefined`, `Serialize` will return `null`.
 
 ```typescript
-  var serialized = Serialize(userInstance);
+import { serialize, Serialize } from 'cerialize';
+
+class Product {
+
+  // Will be serialized as is 
+  @serialize public name : string;
+
+  // Will not be serialized
+  public sku : string;
+
+  constructor(name : string, sku : string) {
+    this.name = name;
+    this.sku = sku;
+  }
+}
+
+var product = new Product('47Z Phone', '47Z-S');
+var serializedProduct = Serialize(product);
+console.log(JSON.stringify(serializedProduct)); // Will display : {name: '47Z Phone'}
+
+var productJson = {name: '47Z Phone', sku: '47Z-S'};
+var serializedProductJson = Serialize(productJson);
+console.log(JSON.stringify(serializedProductJson)); // Will display : {name: '47Z Phone', sku: '47Z-S'}
+
+var serializedProductJsonToObject = Serialize(productJson, Product);
+console.log(JSON.stringify(serializedProductJsonToObject)); // Will display : {name: '47Z Phone'}
 ```
 
 ## <a name="deserializing_new_instances"></a> Deserializing Into New Instances
