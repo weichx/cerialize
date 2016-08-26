@@ -29,6 +29,10 @@ class T4 {
     @deserializeAs(Date) dateList : Array<Date>;
 }
 
+class T5 {
+    @deserializeAs(Date) date: Date;
+}
+
 class JsonTest {
     @deserialize public obj : any;
 
@@ -114,6 +118,13 @@ describe('Deserialize', function () {
         expect(result instanceof Date).toBe(true);
     });
 
+    it('should deserialize a date even when it\'s not a string', function () {
+        var d = new Date();
+        var result = Deserialize(d, Date);
+        expect(result instanceof Date).toBe(true);
+        expect(result.toString()).toEqual(d.toString())
+    });
+
     it('should deserialize a regex', function () {
         var r = /hi/;
         var regexStr = r.toString();
@@ -134,12 +145,21 @@ describe('Deserialize', function () {
     it('should deserialize a nested array as a type', function () {
         var d1 = new Date();
         var d2 = new Date();
-        var t4 = { dateList: [d1.toString(), d2.toString()] };
+        var d3 = new Date();
+        var t4 = { dateList: [d1.toString(), d2.toString(), d3] };
         var result = Deserialize(t4, T4);
         expect(result instanceof T4).toBeTruthy();
         expect(Array.isArray(result.dateList)).toBe(true);
         expect(result.dateList[0].toString()).toEqual(d1.toString());
         expect(result.dateList[1].toString()).toEqual(d2.toString());
+        expect(result.dateList[2].toString()).toEqual(d3.toString());
+    });
+
+    it('should deserialize a Date property even if source is a Date object', function () {
+        var t5 = { date: new Date() }
+        var result = Deserialize(t5, T5);
+        expect(result instanceof T5).toBeTruthy();
+        expect(result.date.toString()).toEqual(t5.date.toString());
     });
 
     it('should call OnDeserialize if defined on parent and or child', function () {
