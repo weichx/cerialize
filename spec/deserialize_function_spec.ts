@@ -371,4 +371,6 @@ describe("Deserializable", () => {
             expect(c1.wheels).toEqual(json.wheels);
         });
     });
+
+
 });

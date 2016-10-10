@@ -382,7 +382,7 @@ function deserializeObjectInto(json, type, instance) {
                 instance[keyName] = deserializeArray(source, null);
             }
         }
-        else if (typeof source === "string" && metadata.deserializedType === Date) {
+        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date) {
             var deserializedDate = new Date(source);
             if (instance[keyName] instanceof Date) {
                 instance[keyName].setTime(deserializedDate.getTime());
@@ -418,7 +418,7 @@ function Deserialize(json, type) {
     else if (json && typeof json === "object") {
         return deserializeObject(json, type);
     }
-    else if (typeof json === "string" && type === Date) {
+    else if ((typeof json === "string" || json instanceof Date) && type === Date) {
         return new Date(json);
     }
     else if (typeof json === "string" && type === RegExp) {
@@ -498,7 +498,7 @@ function deserializeObject(json, type) {
         else if (Array.isArray(source)) {
             instance[keyName] = deserializeArray(source, metadata.deserializedType || null);
         }
-        else if (typeof source === "string" && metadata.deserializedType === Date) {
+        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date) {
             instance[keyName] = new Date(source);
         }
         else if (typeof source === "string" && metadata.deserializedType === RegExp) {
