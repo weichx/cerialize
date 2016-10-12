@@ -418,7 +418,7 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
             }
         }
         //if the type is a Date, reconstruct a real date instance
-        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date) {
+        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date.prototype.constructor) {
             var deserializedDate = new Date(source);
             if (instance[keyName] instanceof Date) {
                 instance[keyName].setTime(deserializedDate.getTime());
@@ -461,7 +461,7 @@ export function Deserialize(json : any, type? : Function|ISerializable) : any {
     else if (json && typeof json === "object") {
         return deserializeObject(json, type);
     }
-    else if ((typeof json === "string" || json instanceof Date) && type === Date) {
+    else if ((typeof json === "string" || json instanceof Date) && type === Date.prototype.constructor) {
         return new Date(json);
     }
     else if (typeof json === "string" && type === RegExp) {
@@ -558,7 +558,7 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         else if (Array.isArray(source)) {
             instance[keyName] = deserializeArray(source, metadata.deserializedType || null);
         }
-        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date) {
+        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date.prototype.constructor) {
             instance[keyName] = new Date(source);
         }
         else if (typeof source === "string" && metadata.deserializedType === RegExp) {
