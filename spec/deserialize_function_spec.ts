@@ -205,6 +205,49 @@ describe('Deserialize', function () {
         expect(result.x).toBe("custom!");
     });
 
+    it('should cast to primitive array when given a primitive type', function() {
+        class Test {
+            @deserializeAs(String) public arrayOfString: Array<string>;
+            @deserializeAs(Number) public arrayOfNumber: Array<number>;
+            @deserializeAs(Boolean) public arrayOfBoolean: Array<boolean>;
+        }
+        var json = {
+            arrayOfString: ['String1', 'String2'],
+            arrayOfNumber: [1, 2],
+            arrayOfBoolean: [true, false]
+        };
+
+        var test : Test = Deserialize(json, Test);
+        expect(Array.isArray(test.arrayOfString)).toBe(true);
+        expect(test.arrayOfString[0]).toBe("String1");
+        expect(test.arrayOfString[1]).toBe("String2");
+        expect(Array.isArray(test.arrayOfNumber)).toBe(true);
+        expect(test.arrayOfNumber[0]).toBe(1);
+        expect(test.arrayOfNumber[1]).toBe(2);
+        expect(Array.isArray(test.arrayOfBoolean)).toBe(true);
+        expect(test.arrayOfBoolean[0]).toBe(true);
+        expect(test.arrayOfBoolean[1]).toBe(false);
+    });
+
+    it('should cast to primitive type when given a primitive type', function() {
+        class Test {
+            @deserializeAs(String) public str: string;
+            @deserializeAs(Number) public num: number;
+            @deserializeAs(Boolean) public bool: boolean;
+        }
+        var json = {
+            str: 1,
+            num: "2",
+            bool: 3
+        };
+        
+        var test : Test = Deserialize(json, Test);
+        expect(test.str).toBe('1');
+        expect(test.num).toBe(2);
+        expect(test.bool).toBe(true);
+
+    });
+
     //contributed by @1ambda
     it('should deserialize a json including nested empty arrays', function() {
         var root1 = {

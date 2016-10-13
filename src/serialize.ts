@@ -67,6 +67,54 @@ export function DashCase(str : string) : string {
     return str.replace(STRING_DASHERIZE_REGEXP, '$1-$2').toLowerCase();
 }
 
+function deserializeString(value : any) : string|string[] {
+    if(Array.isArray(value)) {
+        return value.map(function(element : any) {
+            return element.toString();
+        });
+    }
+    else {
+        return value.toString();
+    }
+}
+
+function deserializeNumber(value : any) : number|number[] {
+    if(Array.isArray(value)) {
+        return value.map(function(element : any) {
+            return parseInt(element);
+        });
+    }
+    else {
+        return parseInt(value);
+    }
+}
+
+function deserializeBoolean(value : any) : boolean|boolean[] {
+    if(Array.isArray(value)) {
+        return value.map(function(element : any) {
+            return Boolean(element);
+        });
+    }
+    else {
+        return Boolean(value);
+    }
+}
+
+function getDeserializeFnForType(type : any) : Deserializer {
+    if(type === String) {
+       return deserializeString;
+    }
+    else if(type === Number) {
+        return deserializeNumber;
+    }
+    else if(type === Boolean) {
+        return deserializeBoolean;
+    }
+    else {
+        return type;
+    }
+}
+
 //gets meta data for a key name, creating a new meta data instance
 //if the input array doesn't already define one for the given keyName
 function getMetaData(array : Array<MetaData>, keyName : string) : MetaData {
@@ -192,9 +240,10 @@ export function deserializeAs(keyNameOrType : string|Function|ISerializable, key
         metadata.deserializedKey = (key) ? key : actualKeyName;
         metadata.deserializedType = type;
         //this allows the type to be a stand alone function instead of a class
+        //todo maybe add an explicit date and regexp deserialization function here
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = <ISerializable>{
-                Deserialize: <Deserializer>type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -236,7 +285,7 @@ export function autoserializeAs(keyNameOrType : string|Function|ISerializable, k
         metadata.serializedType = type;
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = <ISerializable>{
-                Deserialize: <Deserializer>type
+                Deserialize: getDeserializeFnForType
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -541,6 +590,7 @@ function deserializeObject(json : any, type : Function|ISerializable) : any {
         }
 
         var source = json[serializedKey];
+
         var keyName = metadata.keyName;
 
         if (source === void 0) continue;
