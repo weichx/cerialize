@@ -234,18 +234,20 @@ describe('Deserialize', function () {
             @deserializeAs(String) public str: string;
             @deserializeAs(Number) public num: number;
             @deserializeAs(Boolean) public bool: boolean;
+            @deserializeAs(Number) public float: number;
         }
         var json = {
             str: 1,
             num: "2",
-            bool: 3
+            bool: 3,
+            float: "3.1415"
         };
         
         var test : Test = Deserialize(json, Test);
         expect(test.str).toBe('1');
         expect(test.num).toBe(2);
         expect(test.bool).toBe(true);
-
+        expect(test.float).toBe(3.1415);
     });
 
     //contributed by @1ambda

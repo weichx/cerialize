@@ -81,11 +81,11 @@ function deserializeString(value : any) : string|string[] {
 function deserializeNumber(value : any) : number|number[] {
     if(Array.isArray(value)) {
         return value.map(function(element : any) {
-            return parseInt(element);
+            return parseFloat(element);
         });
     }
     else {
-        return parseInt(value);
+        return parseFloat(value);
     }
 }
 
