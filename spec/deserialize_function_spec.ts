@@ -240,7 +240,7 @@ describe('Deserialize', function () {
             num: "2",
             bool: 3
         };
-        
+
         var test : Test = Deserialize(json, Test);
         expect(test.str).toBe('1');
         expect(test.num).toBe(2);

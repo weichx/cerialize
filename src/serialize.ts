@@ -68,19 +68,19 @@ export function DashCase(str : string) : string {
 }
 
 function deserializeString(value : any) : string|string[] {
-    if(Array.isArray(value)) {
-        return value.map(function(element : any) {
-            return element.toString();
+    if (Array.isArray(value)) {
+        return value.map(function (element : any) {
+            return element && element.toString() || null;
         });
     }
     else {
-        return value.toString();
+        return value && value.toString() || null;
     }
 }
 
 function deserializeNumber(value : any) : number|number[] {
-    if(Array.isArray(value)) {
-        return value.map(function(element : any) {
+    if (Array.isArray(value)) {
+        return value.map(function (element : any) {
             return parseInt(element);
         });
     }
@@ -90,8 +90,8 @@ function deserializeNumber(value : any) : number|number[] {
 }
 
 function deserializeBoolean(value : any) : boolean|boolean[] {
-    if(Array.isArray(value)) {
-        return value.map(function(element : any) {
+    if (Array.isArray(value)) {
+        return value.map(function (element : any) {
             return Boolean(element);
         });
     }
@@ -100,15 +100,65 @@ function deserializeBoolean(value : any) : boolean|boolean[] {
     }
 }
 
-function getDeserializeFnForType(type : any) : Deserializer {
-    if(type === String) {
-       return deserializeString;
+function serializeString(value : any) : string|string[] {
+    if (Array.isArray(value)) {
+        return value.map(function (element : any) {
+            return element && element.toString() || null;
+        });
     }
-    else if(type === Number) {
+    else {
+        return value && value.toString() || null;
+    }
+}
+
+function serializeNumber(value : any) : number|number[] {
+    if (Array.isArray(value)) {
+        return value.map(function (element : any) {
+            return parseInt(element);
+        });
+    }
+    else {
+        return parseInt(value);
+    }
+}
+
+function serializeBoolean(value : any) : boolean|boolean[] {
+    if (Array.isArray(value)) {
+        return value.map(function (element : any) {
+            return Boolean(element);
+        });
+    }
+    else {
+        return Boolean(value);
+    }
+
+
+}
+
+function getDeserializeFnForType(type : any) : Deserializer {
+    if (type === String) {
+        return deserializeString;
+    }
+    else if (type === Number) {
         return deserializeNumber;
     }
-    else if(type === Boolean) {
+    else if (type === Boolean) {
         return deserializeBoolean;
+    }
+    else {
+        return type;
+    }
+}
+
+function getSerializeFnForType(type : any) : Serializer {
+    if (type === String) {
+        return serializeString;
+    }
+    else if (type === Number) {
+        return serializeNumber;
+    }
+    else if (type === Boolean) {
+        return serializeBoolean;
     }
     else {
         return type;
@@ -138,7 +188,7 @@ function getTypeAndKeyName(keyNameOrType : string|Function|ISerializable, keyNam
         type = <Function>keyNameOrType;
         key = keyName;
     }
-    return { key: key, type: type };
+    return {key: key, type: type};
 }
 
 //todo instance.constructor.prototype.__proto__ === parent class, maybe use this?
@@ -192,7 +242,7 @@ export function autoserialize(target : any, keyName : string) : any {
 //serializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 export function serializeAs(keyNameOrType : string|Serializer|ISerializable, keyName? : string) : any {
     if (!keyNameOrType) return;
-    var { key, type } = getTypeAndKeyName(keyNameOrType, keyName);
+    var {key, type} = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
         if (!target || !actualKeyName) return;
         var metaDataList : Array<MetaData> = TypeMap.get(target.constructor) || [];
@@ -202,7 +252,7 @@ export function serializeAs(keyNameOrType : string|Serializer|ISerializable, key
         //this allows the type to be a stand alone function instead of a class
         if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
             metadata.serializedType = <ISerializable>{
-                Serialize: <Serializer>type
+                Serialize: getSerializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -222,7 +272,7 @@ export function serializeIndexable(type : Serializer|ISerializable, keyName? : s
         //this allows the type to be a stand alone function instead of a class
         if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
             metadata.serializedType = <ISerializable>{
-                Serialize: <Serializer>type
+                Serialize: getSerializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -232,7 +282,7 @@ export function serializeIndexable(type : Serializer|ISerializable, keyName? : s
 //deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 export function deserializeAs(keyNameOrType : string|Function|ISerializable, keyName? : string) : any {
     if (!keyNameOrType) return;
-    var { key, type } = getTypeAndKeyName(keyNameOrType, keyName);
+    var {key, type} = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
         if (!target || !actualKeyName) return;
         var metaDataList : Array<MetaData> = TypeMap.get(target.constructor) || [];
@@ -263,7 +313,7 @@ export function deserializeIndexable(type : Function|ISerializable, keyName? : s
         metadata.indexable = true;
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = <ISerializable>{
-                Deserialize: <Deserializer>type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -273,7 +323,7 @@ export function deserializeIndexable(type : Function|ISerializable, keyName? : s
 //serializes and deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
 export function autoserializeAs(keyNameOrType : string|Function|ISerializable, keyName? : string) : any {
     if (!keyNameOrType) return;
-    var { key, type } = getTypeAndKeyName(keyNameOrType, keyName);
+    var {key, type} = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
         if (!target || !actualKeyName) return;
         var metaDataList : Array<MetaData> = TypeMap.get(target.constructor) || [];
@@ -282,10 +332,10 @@ export function autoserializeAs(keyNameOrType : string|Function|ISerializable, k
         metadata.deserializedKey = serialKey;
         metadata.deserializedType = type;
         metadata.serializedKey = serialKey;
-        metadata.serializedType = type;
+        metadata.serializedType = getSerializeFnForType(type);
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = <ISerializable>{
-                Deserialize: getDeserializeFnForType
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -304,11 +354,11 @@ export function autoserializeIndexable(type : Function|ISerializable, keyName? :
         metadata.deserializedKey = serialKey;
         metadata.deserializedType = type;
         metadata.serializedKey = serialKey;
-        metadata.serializedType = type;
+        metadata.serializedType = getSerializeFnForType(type);
         metadata.indexable = true;
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = <ISerializable>{
-                Deserialize: <Deserializer>type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -727,7 +777,7 @@ export function Serialize(instance : any, type? : Function|ISerializable) : any 
         return instance.toISOString();
     }
 
-    if(instance instanceof RegExp) {
+    if (instance instanceof RegExp) {
         return instance.toString();
     }
 
