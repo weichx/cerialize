@@ -19,5 +19,8 @@
     "gulp": "^3.9.0",
     "gulp-jasmine": "^2.0.1",
     "gulp-tsc": "^1.1.0"
+  },
+  "dependencies": {
+    "typescript": "^2.1.6"
   }
 }

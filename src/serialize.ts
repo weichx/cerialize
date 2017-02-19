@@ -1,23 +1,5 @@
-//Typescript doesnt include es6 map in the standard lib file yet, define it here
-export interface Map<K, V> {
-    clear() : void;
-    delete(key : K) : boolean;
-    forEach(callbackfn : (value : V, index : K, map : Map<K, V>) => void, thisArg? : any) : void;
-    get(key : K) : V;
-    has(key : K) : boolean;
-    set(key : K, value? : V) : Map<K, V>;
-    size : number;
-}
-
-export interface MapConstructor {
-    new () : Map<any, any>;
-    new <K, V>() : Map<K, V>;
-    prototype : Map<any, any>;
-}
-
 //this library can be used in Node or a browser, make sure our global object points to the right place
 declare var global : any;
-declare var Map : MapConstructor;
 var win : any = null;
 try {
     win = window;
@@ -79,13 +61,13 @@ function deserializeString(value : any) : string|string[] {
 }
 
 function deserializeNumber(value : any) : number|number[] {
-    if (Array.isArray(value)) {
-        return value.map(function (element : any) {
-            return parseInt(element);
+    if(Array.isArray(value)) {
+        return value.map(function(element : any) {
+            return parseFloat(element);
         });
     }
     else {
-        return parseInt(value);
+        return parseFloat(value);
     }
 }
 
@@ -131,8 +113,6 @@ function serializeBoolean(value : any) : boolean|boolean[] {
     else {
         return Boolean(value);
     }
-
-
 }
 
 function getDeserializeFnForType(type : any) : Deserializer {
