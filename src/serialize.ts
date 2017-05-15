@@ -718,7 +718,7 @@ function serializeTypedObject(instance : any, type? : Function|ISerializable) : 
         if (source === void 0) continue;
 
         if (Array.isArray(source)) {
-            json[serializedKey] = serializeArray(source);
+            json[serializedKey] = serializeArray(source, metadata.serializedType || null);
         }
         else if (metadata.serializedType && typeof (<any>metadata.serializedType).Serialize === "function") {
             //todo -- serializeIndexableObject probably isn't needed because of how serialize works
