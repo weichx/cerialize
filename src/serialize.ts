@@ -8,7 +8,7 @@ catch (e) {
     win = global;
 }
 //some other modules might want access to the serialization meta data, expose it here
-var TypeMap = win.__CerializeTypeMap = new Map();
+var TypeMap = win.__CerializeTypeMap = new (win as any).Map();
 
 //type aliases for serialization functions
 export type Serializer = (value : any) => any;

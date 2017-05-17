@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "outDir": "./dist/",
+    "preserveConstEnums": false,
+    "removeComments": false,
+    "target": "es6",
+    "module": "es6",
+    "stripInternal": true,
+    "experimentalDecorators": true,
+    "importHelpers": false,
+    "noImplicitUseStrict": true
+  }
+}

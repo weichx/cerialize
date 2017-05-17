@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var win = null;
 try {
     win = window;
@@ -7,7 +8,7 @@ catch (e) {
     win = global;
 }
 //some other modules might want access to the serialization meta data, expose it here
-var TypeMap = win.__CerializeTypeMap = new Map();
+var TypeMap = win.__CerializeTypeMap = new win.Map();
 exports.__TypeMap = TypeMap;
 //convert strings like my_camel_string to myCamelString
 function CamelCase(str) {
@@ -39,6 +40,94 @@ function DashCase(str) {
     return str.replace(STRING_DASHERIZE_REGEXP, '$1-$2').toLowerCase();
 }
 exports.DashCase = DashCase;
+function deserializeString(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (element) {
+            return element && element.toString() || null;
+        });
+    }
+    else {
+        return value && value.toString() || null;
+    }
+}
+function deserializeNumber(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (element) {
+            return parseFloat(element);
+        });
+    }
+    else {
+        return parseFloat(value);
+    }
+}
+function deserializeBoolean(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (element) {
+            return Boolean(element);
+        });
+    }
+    else {
+        return Boolean(value);
+    }
+}
+function serializeString(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (element) {
+            return element && element.toString() || null;
+        });
+    }
+    else {
+        return value && value.toString() || null;
+    }
+}
+function serializeNumber(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (element) {
+            return parseInt(element);
+        });
+    }
+    else {
+        return parseInt(value);
+    }
+}
+function serializeBoolean(value) {
+    if (Array.isArray(value)) {
+        return value.map(function (element) {
+            return Boolean(element);
+        });
+    }
+    else {
+        return Boolean(value);
+    }
+}
+function getDeserializeFnForType(type) {
+    if (type === String) {
+        return deserializeString;
+    }
+    else if (type === Number) {
+        return deserializeNumber;
+    }
+    else if (type === Boolean) {
+        return deserializeBoolean;
+    }
+    else {
+        return type;
+    }
+}
+function getSerializeFnForType(type) {
+    if (type === String) {
+        return serializeString;
+    }
+    else if (type === Number) {
+        return serializeNumber;
+    }
+    else if (type === Boolean) {
+        return serializeBoolean;
+    }
+    else {
+        return type;
+    }
+}
 //gets meta data for a key name, creating a new meta data instance
 //if the input array doesn't already define one for the given keyName
 function getMetaData(array, keyName) {
@@ -129,7 +218,7 @@ function serializeAs(keyNameOrType, keyName) {
         //this allows the type to be a stand alone function instead of a class
         if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
             metadata.serializedType = {
-                Serialize: type
+                Serialize: getSerializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -151,7 +240,7 @@ function serializeIndexable(type, keyName) {
         //this allows the type to be a stand alone function instead of a class
         if (type !== Date && type !== RegExp && !TypeMap.get(type) && typeof type === "function") {
             metadata.serializedType = {
-                Serialize: type
+                Serialize: getSerializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -171,9 +260,10 @@ function deserializeAs(keyNameOrType, keyName) {
         metadata.deserializedKey = (key) ? key : actualKeyName;
         metadata.deserializedType = type;
         //this allows the type to be a stand alone function instead of a class
+        //todo maybe add an explicit date and regexp deserialization function here
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = {
-                Deserialize: type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -195,7 +285,7 @@ function deserializeIndexable(type, keyName) {
         metadata.indexable = true;
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = {
-                Deserialize: type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -216,10 +306,10 @@ function autoserializeAs(keyNameOrType, keyName) {
         metadata.deserializedKey = serialKey;
         metadata.deserializedType = type;
         metadata.serializedKey = serialKey;
-        metadata.serializedType = type;
+        metadata.serializedType = getSerializeFnForType(type);
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = {
-                Deserialize: type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -240,11 +330,11 @@ function autoserializeIndexable(type, keyName) {
         metadata.deserializedKey = serialKey;
         metadata.deserializedType = type;
         metadata.serializedKey = serialKey;
-        metadata.serializedType = type;
+        metadata.serializedType = getSerializeFnForType(type);
         metadata.indexable = true;
         if (!TypeMap.get(type) && type !== Date && type !== RegExp && typeof type === "function") {
             metadata.deserializedType = {
-                Deserialize: type
+                Deserialize: getDeserializeFnForType(type)
             };
         }
         TypeMap.set(target.constructor, metaDataList);
@@ -382,7 +472,7 @@ function deserializeObjectInto(json, type, instance) {
                 instance[keyName] = deserializeArray(source, null);
             }
         }
-        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date) {
+        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date.prototype.constructor) {
             var deserializedDate = new Date(source);
             if (instance[keyName] instanceof Date) {
                 instance[keyName].setTime(deserializedDate.getTime());
@@ -418,7 +508,7 @@ function Deserialize(json, type) {
     else if (json && typeof json === "object") {
         return deserializeObject(json, type);
     }
-    else if ((typeof json === "string" || json instanceof Date) && type === Date) {
+    else if ((typeof json === "string" || json instanceof Date) && type === Date.prototype.constructor) {
         return new Date(json);
     }
     else if (typeof json === "string" && type === RegExp) {
@@ -491,14 +581,16 @@ function deserializeObject(json, type) {
         var keyName = metadata.keyName;
         if (source === void 0)
             continue;
-        //if there is a custom deserialize function, use that
-        if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
+        if (source === null) {
+            instance[keyName] = source;
+        }
+        else if (metadata.deserializedType && typeof metadata.deserializedType.Deserialize === "function") {
             instance[keyName] = metadata.deserializedType.Deserialize(source);
         }
         else if (Array.isArray(source)) {
             instance[keyName] = deserializeArray(source, metadata.deserializedType || null);
         }
-        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date) {
+        else if ((typeof source === "string" || source instanceof Date) && metadata.deserializedType === Date.prototype.constructor) {
             instance[keyName] = new Date(source);
         }
         else if (typeof source === "string" && metadata.deserializedType === RegExp) {
@@ -566,7 +658,7 @@ function serializeTypedObject(instance, type) {
         if (source === void 0)
             continue;
         if (Array.isArray(source)) {
-            json[serializedKey] = serializeArray(source);
+            json[serializedKey] = serializeArray(source, metadata.serializedType || null);
         }
         else if (metadata.serializedType && typeof metadata.serializedType.Serialize === "function") {
             //todo -- serializeIndexableObject probably isn't needed because of how serialize works
@@ -647,4 +739,3 @@ function SerializableEnumeration(e) {
     };
 }
 exports.SerializableEnumeration = SerializableEnumeration;
-//expose the type map
