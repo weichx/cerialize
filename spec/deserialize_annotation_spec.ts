@@ -1,5 +1,5 @@
 ///<reference path="./typings/jasmine.d.ts"/>
-import { __TypeMap, deserialize, deserializeAs, Deserialize } from '../src/serialize';
+import { __TypeMap, deserialize, deserializeAs } from '../src/serialize';
 
 
 class T {
