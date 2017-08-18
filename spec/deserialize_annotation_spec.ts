@@ -24,6 +24,7 @@ class AsTest3 {
 }
 
 describe('deserialize', function () {
+
     it('should create meta data', function() {
         expect(__TypeMap.get(T)).toBeDefined();
         expect(__TypeMap.get(T).length).toBe(1);
