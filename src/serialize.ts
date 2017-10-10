@@ -14,6 +14,14 @@ var TypeMap = win.__CerializeTypeMap = new (win as any).Map();
 export type Serializer = (value : any) => any;
 export type Deserializer = (value : any) => any;
 
+export interface INewable<T> {
+    new (...args : any[]) : T;
+}
+
+export interface IEnum {
+    [enumeration : string] : any
+}
+
 export interface ISerializable {
     Serialize? : (value : any) => any;
     Deserialize? : (json : any, instance? : any) => any;
@@ -220,7 +228,7 @@ export function autoserialize(target : any, keyName : string) : any {
 
 //We dont actually need the type to serialize but I like the consistency with deserializeAs which definitely does
 //serializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
-export function serializeAs(keyNameOrType : string|Serializer|ISerializable, keyName? : string) : any {
+export function serializeAs(keyNameOrType : string|Serializer|INewable<any>|ISerializable|IEnum, keyName? : string) : any {
     if (!keyNameOrType) return;
     var {key, type} = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
@@ -240,7 +248,7 @@ export function serializeAs(keyNameOrType : string|Serializer|ISerializable, key
 }
 
 //Supports serializing of dictionary-like map objects, ie: { x: {}, y: {} }
-export function serializeIndexable(type : Serializer|ISerializable, keyName? : string) : any {
+export function serializeIndexable(type : Serializer|INewable<any>|ISerializable, keyName? : string) : any {
     if (!type) return;
     return function (target : any, actualKeyName : string) : any {
         if (!target || !actualKeyName) return;
@@ -260,7 +268,7 @@ export function serializeIndexable(type : Serializer|ISerializable, keyName? : s
 }
 
 //deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
-export function deserializeAs(keyNameOrType : string|Function|ISerializable, keyName? : string) : any {
+export function deserializeAs(keyNameOrType : string|Function|INewable<any>|ISerializable|IEnum, keyName? : string) : any {
     if (!keyNameOrType) return;
     var {key, type} = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
@@ -281,7 +289,7 @@ export function deserializeAs(keyNameOrType : string|Function|ISerializable, key
 }
 
 //Supports deserializing of dictionary-like map objects, ie: { x: {}, y: {} }
-export function deserializeIndexable(type : Function|ISerializable, keyName? : string) : any {
+export function deserializeIndexable(type : Function|INewable<any>|ISerializable, keyName? : string) : any {
     if (!type) return;
     var key = keyName;
     return function (target : any, actualKeyName : string) : any {
@@ -301,7 +309,7 @@ export function deserializeIndexable(type : Function|ISerializable, keyName? : s
 }
 
 //serializes and deserializes a type using 1.) a custom key name, 2.) a custom type, or 3.) both custom key and type
-export function autoserializeAs(keyNameOrType : string|Function|ISerializable, keyName? : string) : any {
+export function autoserializeAs(keyNameOrType : string|Function|INewable<any>|ISerializable|IEnum, keyName? : string) : any {
     if (!keyNameOrType) return;
     var {key, type} = getTypeAndKeyName(keyNameOrType, keyName);
     return function (target : any, actualKeyName : string) : any {
@@ -323,7 +331,7 @@ export function autoserializeAs(keyNameOrType : string|Function|ISerializable, k
 }
 
 //Supports serializing/deserializing of dictionary-like map objects, ie: { x: {}, y: {} }
-export function autoserializeIndexable(type : Function|ISerializable, keyName? : string) : any {
+export function autoserializeIndexable(type : Function|INewable<any>|ISerializable, keyName? : string) : any {
     if (!type) return;
     var key = keyName;
     return function (target : any, actualKeyName : string) : any {
@@ -353,8 +361,8 @@ class MetaData {
     public keyName : string;    //the key name of the property this meta data describes
     public serializedKey : string; //the target keyname for serializing
     public deserializedKey : string;    //the target keyname for deserializing
-    public serializedType : Function|ISerializable; //the type or function to use when serializing this property
-    public deserializedType : Function|ISerializable;  //the type or function to use when deserializing this property
+    public serializedType : Function|INewable<any>|ISerializable; //the type or function to use when serializing this property
+    public deserializedType : Function|INewable<any>|ISerializable;  //the type or function to use when deserializing this property
     public indexable : boolean;
 
     constructor(keyName : string) {
@@ -427,7 +435,7 @@ function mergePrimitiveObjects(instance : any, json : any) : any {
 
 //takes an array defined in json and deserializes it into an array that ist stuffed with instances of `type`.
 //any instances already defined in `arrayInstance` will be re-used where possible to maintain referential integrity.
-function deserializeArrayInto(source : Array<any>, type : Function|ISerializable, arrayInstance : any) : Array<any> {
+function deserializeArrayInto(source : Array<any>, type : Function|INewable<any>|ISerializable, arrayInstance : any) : Array<any> {
     if (!Array.isArray(arrayInstance)) {
         arrayInstance = new Array<any>(source.length);
     }
@@ -443,7 +451,7 @@ function deserializeArrayInto(source : Array<any>, type : Function|ISerializable
 
 //takes an object defined in json and deserializes it into a `type` instance or populates / overwrites
 //properties on `instance` if it is provided.
-function deserializeObjectInto(json : any, type : Function|ISerializable, instance : any) : any {
+function deserializeObjectInto(json : any, type : Function|INewable<any>|ISerializable, instance : any) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
     //if we dont have an instance we need to create a new `type`
     if (instance === null || instance === void 0) {
@@ -532,7 +540,7 @@ function deserializeObjectInto(json : any, type : Function|ISerializable, instan
 }
 
 //deserializes a bit of json into a `type`
-export function Deserialize(json : any, type? : Function|ISerializable) : any {
+export function Deserialize(json : any, type? : Function|INewable<any>|ISerializable) : any {
 
     if (Array.isArray(json)) {
         return deserializeArray(json, type);
@@ -553,7 +561,7 @@ export function Deserialize(json : any, type? : Function|ISerializable) : any {
 }
 
 //takes some json, a type, and a target object and deserializes the json into that object
-export function DeserializeInto(source : any, type : Function|ISerializable, target : any) : any {
+export function DeserializeInto(source : any, type : Function|INewable<any>|ISerializable, target : any) : any {
     if (Array.isArray(source)) {
         return deserializeArrayInto(source, type, target || []);
     }
@@ -566,7 +574,7 @@ export function DeserializeInto(source : any, type : Function|ISerializable, tar
 }
 
 //deserializes an array of json into an array of `type`
-function deserializeArray(source : Array<any>, type : Function|ISerializable) : Array<any> {
+function deserializeArray(source : Array<any>, type : Function|INewable<any>|ISerializable) : Array<any> {
     var retn : Array<any> = new Array(source.length);
     for (var i = 0; i < source.length; i++) {
         retn[i] = Deserialize(source[i], type);
@@ -587,7 +595,7 @@ function invokeSerializeHook(instance : any, json : any) : void {
 }
 
 //deserialize a bit of json into an instance of `type`
-function deserializeObject(json : any, type : Function|ISerializable) : any {
+function deserializeObject(json : any, type : Function|INewable<any>|ISerializable) : any {
     var metadataArray : Array<MetaData> = TypeMap.get(type);
 
     //if we dont have meta data, just decode the json and use that
@@ -775,11 +783,11 @@ export function Serialize(instance : any, type? : Function|ISerializable) : any 
     return instance;
 }
 
-export function GenericDeserialize<T>(json : any, type : new () => T) : T {
+export function GenericDeserialize<T>(json : any, type : INewable<T>) : T {
     return <T>Deserialize(json, type);
 }
 
-export function GenericDeserializeInto<T>(json : any, type : new() => T, instance : T) : T {
+export function GenericDeserializeInto<T>(json : any, type : INewable<T> instance : T) : T {
     return <T>DeserializeInto(json, type, instance);
 }
 
@@ -800,7 +808,7 @@ export function SerializeKeysTo(transform : (key : string) => string) {
 //this is kinda dumb but typescript doesnt treat enums as a type, but sometimes you still
 //want them to be serialized / deserialized, this does the trick but must be called after
 //the enum is defined.
-export function SerializableEnumeration(e : any) : void {
+export function SerializableEnumeration(e : IEnum) : void {
     e.Serialize = function (x : any) : any {
         return e[x];
     };
