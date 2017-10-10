@@ -787,7 +787,7 @@ export function GenericDeserialize<T>(json : any, type : INewable<T>) : T {
     return <T>Deserialize(json, type);
 }
 
-export function GenericDeserializeInto<T>(json : any, type : INewable<T> instance : T) : T {
+export function GenericDeserializeInto<T>(json : any, type : INewable<T>, instance : T) : T {
     return <T>DeserializeInto(json, type, instance);
 }
 

@@ -204,15 +204,14 @@ describe('Serialize', function () {
         expect(json.yMap[1].thing).toBe('one');
         expect(json.yMap[2].thing).toBe('two');
     });
-    it("should apply custom names recursively", function () {
-        class Person {
-        }
-        __decorate([
-            serializeAs(Person, 'Girl_Friend')
-        ], Person.prototype, "girlFriend", void 0);
-        var instance = new Person();
-        instance.girlFriend = new Person();
-        instance.girlFriend.girlFriend = new Person();
-        var json = Serialize(instance, Person);
-    });
+    // it("should apply custom names recursively", function() {
+    //     class Person {
+    //         @serializeAs(Person, 'Girl_Friend')
+    //         public girlFriend : Person;
+    //     }
+    //     var instance = new Person();
+    //     instance.girlFriend = new Person();
+    //     instance.girlFriend.girlFriend = new Person();
+    //     var json = Serialize(instance, Person);
+    // })
 });
