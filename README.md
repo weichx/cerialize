@@ -78,11 +78,11 @@ After defining which properties should be serialized, deserialized, or both, the
 
 Calling `Serialize(value, classType?)` on something will serialize it into a pre-stringified json object. You must call `JSON.stringify` to make it a string. Serialization works through the following alorithm:
 
-1. If `value` is an array, all items in the array will be have `Serialize` called on them (with `classType` argument if given). 
+1. If `value` is an array, all items in the array will have `Serialize` called on them (with `classType` argument if given). 
 
 2. If `classType` is given, the `value` is considered like an instance of this object class (see `3` and `4`).
 
-3. If `value` is an object that has any properties marked with a serializtion annotation, or inherits any properties marked for serialization, only those properties marked for serialization will be serialized. Anything without an annotation will not have `Serialize` called on them.
+3. If `value` is an object that has any properties marked with a serialization annotation, or inherits any properties marked for serialization, only those properties marked for serialization will be serialized. Anything without an annotation will not have `Serialize` called on them.
 
 4. If `value` is an object that does not have any properties marked for serialization and does not inherit any properties marked for serialization, all keys in that object will be serialized as primtives, unless the value at a given key is an instance of a class with serialized properties, in which case it will be serialized as described above in 2.
 
@@ -193,8 +193,8 @@ class Admin extends User {
 
 }
 ```
-##Generics
-Typescript generics unfortunately do not give any runtime type information, but they are still helpful in that you don not need to cast the output of a `Deserialize` function to a given type when the type can be inferred by the compiler. Cerialize supports generics through `GenericDeserialize` and `GenericDeserializeInto`. These two functions work exactly the same as their non generic counterparts but have a typed signature. 
+## Generics
+Typescript generics unfortunately do not give any runtime type information, but they are still helpful in that you do not need to cast the output of a `Deserialize` function to a given type when the type can be inferred by the compiler. Cerialize supports generics through `GenericDeserialize` and `GenericDeserializeInto`. These two functions work exactly the same as their non generic counterparts but have a typed signature. 
 ```typescript
 import { GenericDeserialize, GenericDeserializeInto } from 'cerialize';
 
