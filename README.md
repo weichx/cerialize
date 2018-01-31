@@ -209,7 +209,24 @@ expect((tree2 instanceof Tree)).toBe(true);
 expect(tree2).toBe(tree);
 expect(tree.value).toBe("someValue");
 ```
+## Defining a custom serializer type
+Sometimes you want to define a function to do the serializing for you and not rely on annotations. One example might be a type represented as an object on the server but as a primitive on the client. You can define an object with the keys `Serialize` and `Deserialize` which are functions you can define to handle these operations.
 
+```
+const MoneySerializer = {
+    Serializer(json : any) : any { 
+        return { amount: value, currency: "EUR" };
+    },
+    Deserialize(json : any) : any {
+        return parseFloat(json.amount);
+    }
+};
+
+class CustomThing {
+    @autoserializeAs(MoneySerializer) public amount : number;
+}
+
+```
 ## Customizing key transforms
 Often your server and your client will have different property naming conventions. For instance, Rails / Ruby generally expects objects to have properties that are under_score_cased while most JS authors prefer camelCase. You can tell Cerialize to use a certain key transform automatically when serializing and deserializing by calling `DeserializeKeysFrom(transform : (key : string) => string)` and `SerializeKeysTo(transform : (key : string) => string)`. A handful of transform functions are provided in this package or you can define your own function conforming to `(key : string) => string`.
 
