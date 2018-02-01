@@ -3,12 +3,9 @@
 //objects each describing one property
 
 import { IConstructable, SerializableType } from "./util";
+import { NoOp } from "./string_transforms";
 
 const TypeMap = new Map<any, Array<MetaData>>();
-
-function defaultTransform (str : string) : string {
-  return str;
-}
 
 /** @internal */
 export const enum MetaDataFlag {
@@ -65,9 +62,6 @@ export class MetaData {
     return this.deserializedKey ? this.deserializedKey : this.keyName;
   }
 
-  public static serializeKeyTransform = defaultTransform;
-  public static deserializeKeyTransform = defaultTransform;
-
   //checks for a key name in a meta data array
   public static hasKeyName(metadataArray : Array<MetaData>, key : string) : boolean {
     for (var i = 0; i < metadataArray.length; i++) {
@@ -78,7 +72,7 @@ export class MetaData {
 
   //clone a meta data instance, used for inheriting serialization properties
   public static clone(data : MetaData) : MetaData {
-    var metadata = new MetaData(data.keyName);
+    const metadata = new MetaData(data.keyName);
     metadata.deserializedKey = data.deserializedKey;
     metadata.serializedKey = data.serializedKey;
     metadata.serializedType = data.serializedType;
@@ -90,7 +84,7 @@ export class MetaData {
   //gets meta data for a key name, creating a new meta data instance
   //if the input array doesn't already define one for the given keyName
   public static getMetaData(target : Function, keyName : string) : MetaData {
-    var metaDataList : Array<MetaData> = TypeMap.get(target);
+    var metaDataList = TypeMap.get(target);
 
     if (metaDataList === void 0) {
       metaDataList = [];
@@ -120,14 +114,16 @@ export class MetaData {
   }
 
   public static getMetaDataForType(type : IConstructable) {
-    var metadataArray : Array<MetaData>;
-    if (type) {
-      metadataArray = TypeMap.get(type);
+    if (type !== null && type !== void 0) {
+      return TypeMap.get(type) || null;
     }
-    return metadataArray || null;
+    return null;
   }
 
   public static readonly TypeMap = TypeMap;
 
+  public static serializeKeyTransform = NoOp;
+
+  public static deserializeKeyTransform = NoOp;
 
 }
