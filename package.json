@@ -1,6 +1,6 @@
 {
   "name": "cerialize",
-  "description": "Easy serialization throught ES7/Typescript annotations",
+  "description": "Easy serialization through ES7/Typescript annotations",
   "keywords": [
     "serialize",
     "typescript",
@@ -12,18 +12,14 @@
   "author": "Matt Weichselbaum",
   "license": "MIT",
   "repository": "https://github.com/weichx/cerialize",
-  "version": "0.1.18",
-  "main": "index.js",
+  "version": "2.0.0",
+  "main": "dist/index.js",
   "scripts": {
     "test": "jest",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
   },
-  "typings": "dist/serialize.d.ts",
+  "typings": "dist/index.d.ts",
   "devDependencies": {
-    "gulp": "^3.9.0",
-    "gulp-jasmine": "^2.0.1",
-    "gulp-tsc": "^1.1.0",
-    "jasmine-core": "^2.6.2",
     "jest": "^22.1.4",
     "ts-jest": "^22.0.2",
     "typescript": "^2.7.1"
@@ -36,9 +32,7 @@
     },
     "moduleFileExtensions": [
       "ts",
-      "tsx",
-      "js",
-      "jsx"
+      "tsx"
     ]
   }
 }
