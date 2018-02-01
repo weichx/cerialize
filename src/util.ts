@@ -1,33 +1,7 @@
-export type JsonType = string | number | boolean | JsonObject | JsonArray;
-
-export interface JsonObject {
-    [x : string] : JsonType;
-}
-
-interface JsonArray extends Array<JsonType> {}
-
+export type JsonType = null | string | number | boolean | JsonObject | JsonArray;
 export type Serializer<T> = (target : T) => JsonType;
 export type Deserializer<T> = (data : JsonType, target? : T, createInstances? : boolean) => T;
-
-export interface ISerializer<T> {
-    Serialize : Serializer<T>;
-    Deserialize : Deserializer<T>;
-}
-
-// export type JsonType = Indexable<JsonType> | string | boolean | number | object | Array<JsonType>;
 export type IConstructable = { constructor : Function };
-
-export interface Indexable<T = any> {
-    [idx : string] : T;
-}
-
-export interface SerializableType<T> {
-    new (...args : any[]) : T;
-
-    onSerialized? : (data : JsonObject, instance : T) => void | JsonObject;
-    onDeserialized? : (data : JsonObject, instance : T, createInstances? : boolean) => T;
-}
-
 export type SerializeFn = <T>(data : T) => JsonType;
 export type SerializablePrimitiveType =
     DateConstructor |
@@ -35,6 +9,29 @@ export type SerializablePrimitiveType =
     BooleanConstructor |
     RegExpConstructor |
     StringConstructor;
+
+
+export interface JsonObject {
+    [idx : string] : JsonType;
+}
+
+export interface JsonArray extends Array<JsonType> {}
+
+export interface ISerializer<T> {
+    Serialize : Serializer<T>;
+    Deserialize : Deserializer<T>;
+}
+
+export interface Indexable<T = any|null> {
+    [idx : string] : T;
+}
+
+export interface SerializableType<T> {
+    new (...args : any[]) : T;
+
+    onSerialized? : (data : JsonObject, instance : T) => JsonObject;
+    onDeserialized? : (data : JsonObject, instance : T, createInstances? : boolean) => T;
+}
 
 /** @internal */
 export function getTarget<T>(type : SerializableType<T>, target : T, createInstances : boolean) : T {
@@ -48,6 +45,7 @@ export function getTarget<T>(type : SerializableType<T>, target : T, createInsta
     return {} as T;
 }
 
+/** @internal */
 export function isPrimitiveType(type : Function) : boolean {
     return (
         type === String ||
@@ -58,6 +56,7 @@ export function isPrimitiveType(type : Function) : boolean {
     );
 }
 
+/** @internal */
 export function setBitConditionally(value : number, bits : number, condition : boolean) : number {
     if (condition) {
         return value | bits;

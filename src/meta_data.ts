@@ -41,10 +41,10 @@ export class MetaData {
 
   constructor(keyName : string) {
     this.keyName = keyName;
-    this.serializedKey = null;
-    this.deserializedKey = null;
-    this.deserializedType = null;
-    this.serializedType = null;
+    this.serializedKey = "";
+    this.deserializedKey = "";
+    this.deserializedType = Function;
+    this.serializedType = Function;
     this.flags = 0;
   }
 

@@ -82,7 +82,7 @@ export function SerializeJSON(source : any, transformKeys = true) : JsonType {
     return source;
 }
 
-export function Serialize<T>(instance : T, type : SerializableType<T>) : JsonObject {
+export function Serialize<T>(instance : T, type : SerializableType<T>) : JsonObject | null {
 
     if (instance === void 0 || instance === null) {
         return null;

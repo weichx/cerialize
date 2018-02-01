@@ -8,8 +8,15 @@
     "target": "es6",
     "module": "es6",
     "stripInternal": true,
+    "strict": true,
     "experimentalDecorators": true,
     "importHelpers": false,
-    "noImplicitUseStrict": true
-  }
+    "declaration": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "spec",
+    "dist"
+  ]
 }

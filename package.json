@@ -30,7 +30,7 @@
   },
   "dependencies": {},
   "jest": {
-    "testRegex": "/spec2/.*\\.spec\\.([tj]sx?)$",
+    "testRegex": "/spec/.*\\.spec\\.([tj]sx?)$",
     "transform": {
       "^.+\\.[jt]sx?$": "ts-jest"
     },

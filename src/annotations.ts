@@ -20,7 +20,7 @@ export function serializeAs(type : SerializableType<any>, keyName? : string) {
     };
 }
 
-export function serializeAsArray<T>(type : SerializableType<T>, keyName : string = null) {
+export function serializeAsArray<T>(type : SerializableType<T>, keyName? : string) {
     return function (target : any, actualKeyName : string) : any {
         const metadata = MetaData.getMetaData(target.constructor, actualKeyName);
         metadata.serializedKey = (keyName) ? keyName : actualKeyName;
@@ -30,7 +30,7 @@ export function serializeAsArray<T>(type : SerializableType<T>, keyName : string
     };
 }
 
-export function serializeAsMap<T>(type : SerializableType<T>, keyName : string = null) {
+export function serializeAsMap<T>(type : SerializableType<T>, keyName? : string) {
     return function (target : any, actualKeyName : string) : any {
         const metadata = MetaData.getMetaData(target.constructor, actualKeyName);
         metadata.serializedKey = (keyName) ? keyName : actualKeyName;
@@ -40,7 +40,7 @@ export function serializeAsMap<T>(type : SerializableType<T>, keyName : string =
     };
 }
 
-export function serializeAsJson(keyNameOrTransformKeys : boolean | string = null, transformKeys = true) {
+export function serializeAsJson(keyNameOrTransformKeys? : boolean | string, transformKeys = true) {
     return function (target : IConstructable, actualKeyName : string) : void {
         const metadata = MetaData.getMetaData(target.constructor, actualKeyName);
         metadata.serializedKey = (typeof keyNameOrTransformKeys === "string") ? keyNameOrTransformKeys : actualKeyName;
@@ -144,7 +144,7 @@ export function autoserializeAsMap(type : SerializableType<any>, keyName? : stri
     };
 }
 
-export function autoserializeAsJson(keyNameOrTransformKeys : boolean|string = null, transformKeys = true) {
+export function autoserializeAsJson(keyNameOrTransformKeys? : boolean|string, transformKeys = true) {
     return function (target : IConstructable, actualKeyName : string) : void {
         const metadata = MetaData.getMetaData(target.constructor, actualKeyName);
         const key = (typeof keyNameOrTransformKeys === "string") ? keyNameOrTransformKeys : actualKeyName;

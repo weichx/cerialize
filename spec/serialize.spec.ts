@@ -5,7 +5,6 @@ import {
 import {Serialize, SerializeJSON} from "../src/serialize";
 import {Indexable, JsonObject} from "../src/util";
 import {SetSerializeKeyTransform} from "../src/index";
-import {MetaData} from "../src/meta_data";
 
 describe("Serializing", function () {
 

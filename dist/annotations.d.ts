@@ -1,0 +1,16 @@
+import { IConstructable, SerializableType, SerializeFn, ISerializer } from "./util";
+export declare function serializeUsing(serializer: SerializeFn, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function serializeAs(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function serializeAsArray<T>(type: SerializableType<T>, keyName?: string): (target: any, actualKeyName: string) => any;
+export declare function serializeAsMap<T>(type: SerializableType<T>, keyName?: string): (target: any, actualKeyName: string) => any;
+export declare function serializeAsJson(keyNameOrTransformKeys?: boolean | string, transformKeys?: boolean): (target: IConstructable, actualKeyName: string) => void;
+export declare function deserializeUsing(serializer: SerializeFn, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function deserializeAs(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function deserializeAsArray(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function deserializeAsMap(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function autoserializeUsing(serializer: ISerializer<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function autoserializeAs(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function autoserializeAsArray(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function autoserializeAsMap(type: SerializableType<any>, keyName?: string): (target: IConstructable, actualKeyName: string) => void;
+export declare function autoserializeAsJson(keyNameOrTransformKeys?: boolean | string, transformKeys?: boolean): (target: IConstructable, actualKeyName: string) => void;
+export declare function inheritSerialization(parentType: IConstructable): (childType: Function) => void;
