@@ -26,6 +26,7 @@ describe("Serializing", function () {
   describe("SerializeAs", function () {
 
     function runTests(blockName : string, serializeAs : any, serializeAsMap : any, serializeAsArray : any, serializeAsJson : any) {
+
       describe(blockName, function () {
 
         it("serializes basic primitive", function () {

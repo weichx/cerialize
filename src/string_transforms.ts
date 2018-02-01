@@ -1,4 +1,8 @@
 
+export function NoOp(str : string) : string {
+  return str;
+}
+
 //convert strings like my_camel_string to myCamelString
 export function CamelCase(str : string) : string {
   var STRING_CAMELIZE_REGEXP = (/(-|_|\.|\s)+(.)?/g);

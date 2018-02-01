@@ -6,6 +6,10 @@ import { IConstructable, SerializableType } from "./util";
 
 const TypeMap = new Map<any, Array<MetaData>>();
 
+function defaultTransform (str : string) : string {
+  return str;
+}
+
 /** @internal */
 export const enum MetaDataFlag {
   DeserializePrimitive = 1 << 1,
@@ -61,13 +65,8 @@ export class MetaData {
     return this.deserializedKey ? this.deserializedKey : this.keyName;
   }
 
-  public static serializeKeyTransform = function (str : string) {
-    return str;
-  };
-
-  public static deserializeKeyTransform = function (str : string) {
-    return str;
-  };
+  public static serializeKeyTransform = defaultTransform;
+  public static deserializeKeyTransform = defaultTransform;
 
   //checks for a key name in a meta data array
   public static hasKeyName(metadataArray : Array<MetaData>, key : string) : boolean {
@@ -120,16 +119,10 @@ export class MetaData {
     TypeMap.set(childType, childMetaData);
   }
 
-  public static hasMetaData<T>(type : SerializableType<T>) {
-    return TypeMap.has(type);
-  }
-
-  public static getMetaDataForType(type : IConstructable, instance : any = null) {
+  public static getMetaDataForType(type : IConstructable) {
     var metadataArray : Array<MetaData>;
     if (type) {
       metadataArray = TypeMap.get(type);
-    } else if (instance.constructor) {
-      metadataArray = TypeMap.get(instance.constructor);
     }
     return metadataArray || null;
   }
