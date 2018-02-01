@@ -1,5 +1,6 @@
 ///<reference path="./typings/jasmine.d.ts"/>
-import {__TypeMap, serialize, serializeAs, Serialize, serializeIndexable} from '../src/serialize';
+import {serialize, serializeAs, Serialize, serializeAsIndexable} from '../src/index';
+import { serializeUsing } from "../src/annotations";
 
 class Vector3 {
     @serialize x : number;
@@ -37,7 +38,7 @@ class TSubObject {
         this.v2 = new Vector3(2, 1);
     }
 
-    public static OnSerialized(instance : TSubObject, json : any) : void {
+    public static onSerialized(instance : TSubObject, json : any) : void {
         //do nothing
     }
 }
@@ -46,16 +47,8 @@ var SerializeFn = function (src : string) : string {
     return 'custom!';
 };
 
-var CustomerSerialized = {
-    Serialize: SerializeFn
-};
-
-class CustomSerializedTest {
-    @serializeAs(CustomerSerialized) public x : string;
-}
-
 class CustomSerializedTest2 {
-    @serializeAs(SerializeFn) public x : string;
+    @serializeUsing(SerializeFn) public x : string;
 }
 
 describe('Serialize', function () {
@@ -166,18 +159,11 @@ describe('Serialize', function () {
         expect(serialized.v2.z).toBe(void 0);
     });
 
-    it('will call OnSerialized if a type defines it', function () {
+    it('will call onSerialized if a type defines it', function () {
         var test = new TSubObject();
-        spyOn(TSubObject, 'OnSerialized').and.callThrough();
+        spyOn(TSubObject, 'onSerialized').and.callThrough();
         var json = Serialize(test);
-        expect(TSubObject.OnSerialized).toHaveBeenCalledWith(test, json);
-    });
-
-    it('should use a custom serializer', function () {
-        var test = new CustomSerializedTest();
-        test.x = 'not custom';
-        var result = Serialize(test);
-        expect(result.x).toBe('custom!');
+        expect(TSubObject.onSerialized).toHaveBeenCalledWith(test, json);
     });
 
     it('should use a custom serialize fn', function () {
@@ -187,7 +173,7 @@ describe('Serialize', function () {
         expect(result.x).toBe('custom!');
     });
 
-    it('should serialize indexable objects', function() {
+    it('should serialize isMap objects', function() {
         class Y {
 
             @serialize thing : string;
@@ -198,30 +184,23 @@ describe('Serialize', function () {
 
         }
         class X {
-            @serializeIndexable(Y) yMap : any;
+            @serializeAsIndexable(Y) yMap : any;
         }
 
         var x = new X();
 
         x.yMap = {
             1: new Y('one'),
-            2: new Y('two')
+            2: new Y('two'),
+            "hi": [new Y("three"), new Y("four")]
         };
 
         var json : any = Serialize(x);
         expect(json.yMap[1].thing).toBe('one');
         expect(json.yMap[2].thing).toBe('two');
+        expect(json.yMap["hi"].length).toBe(2);
+        expect(json.yMap["hi"][0].thing).toBe("three");
+        expect(json.yMap["hi"][1].thing).toBe("four");
     });
-
-    // it("should apply custom names recursively", function() {
-    //     class Person {
-    //         @serializeAs(Person, 'Girl_Friend')
-    //         public girlFriend : Person;
-    //     }
-    //     var instance = new Person();
-    //     instance.girlFriend = new Person();
-    //     instance.girlFriend.girlFriend = new Person();
-    //     var json = Serialize(instance, Person);
-    // })
 
 });

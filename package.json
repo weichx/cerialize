@@ -14,14 +14,32 @@
   "repository": "https://github.com/weichx/cerialize",
   "version": "0.1.18",
   "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
+  },
   "typings": "dist/serialize.d.ts",
   "devDependencies": {
     "gulp": "^3.9.0",
     "gulp-jasmine": "^2.0.1",
     "gulp-tsc": "^1.1.0",
-    "jasmine-core": "^2.6.2"
+    "jasmine-core": "^2.6.2",
+    "jest": "^22.1.4",
+    "ts-jest": "^22.0.2"
   },
   "dependencies": {
-    "typescript": "^2.5.0"
+    "typescript": "2.6.2"
+  },
+  "jest": {
+    "testRegex": "/spec2/.*\\.spec\\.([tj]sx?)$",
+    "transform": {
+      "^.+\\.[jt]sx?$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx"
+    ]
   }
 }

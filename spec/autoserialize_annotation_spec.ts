@@ -1,5 +1,7 @@
 ///<reference path="./typings/jasmine.d.ts"/>
-import {__TypeMap, autoserialize, Serialize, Deserialize, DeserializeInto, autoserializeAs} from '../src/serialize';
+import { autoserialize, Deserialize, Serialize, autoserializeAs} from '../src/index';
+import { MetaData} from "../src/meta_data";
+import { autoserializeUsing } from "../src/annotations";
 
 class T {
     @autoserialize public x: number;
@@ -27,51 +29,48 @@ class Test3 {
 
 describe('autoserialize', function () {
     it('should create meta data for serialize and deserialize', function () {
-        expect(__TypeMap.get(T)).toBeDefined();
-        expect(__TypeMap.get(T).length).toBe(1);
-        expect(__TypeMap.get(T)[0].serializedKey).toBe('x');
-        expect(__TypeMap.get(T)[0].serializedType).toBe(null);
-        expect(__TypeMap.get(T)[0].deserializedType).toBe(null);
-        expect(__TypeMap.get(T)[0].deserializedKey).toBe('x');
+        expect(MetaData.TypeMap.get(T)).toBeDefined();
+        expect(MetaData.TypeMap.get(T).length).toBe(1);
+        expect(MetaData.TypeMap.get(T)[0].serializedKey).toBe('x');
+        expect(MetaData.TypeMap.get(T)[0].serializedType).toBe(null);
+        expect(MetaData.TypeMap.get(T)[0].deserializedType).toBe(null);
+        expect(MetaData.TypeMap.get(T)[0].deserializedKey).toBe('x');
     });
 });
 
 describe('autoserializeAs', function () {
     it('should create meta data', function () {
-        expect(__TypeMap.get(AsTest)).toBeDefined();
-        expect(__TypeMap.get(AsTest).length).toBe(1);
-        expect(__TypeMap.get(AsTest)[0].serializedKey).toBe('v');
-        expect(__TypeMap.get(AsTest)[0].serializedType).toBe(Vector2);
-        expect(__TypeMap.get(AsTest)[0].deserializedKey).toBe('v');
-        expect(__TypeMap.get(AsTest)[0].deserializedType).toBe(Vector2);
+        expect(MetaData.TypeMap.get(AsTest)).toBeDefined();
+        expect(MetaData.TypeMap.get(AsTest).length).toBe(1);
+        expect(MetaData.TypeMap.get(AsTest)[0].serializedKey).toBe('v');
+        expect(MetaData.TypeMap.get(AsTest)[0].serializedType).toBe(Vector2);
+        expect(MetaData.TypeMap.get(AsTest)[0].deserializedKey).toBe('v');
+        expect(MetaData.TypeMap.get(AsTest)[0].deserializedType).toBe(Vector2);
     });
 
     it('should create meta data with a different key', function () {
-        expect(__TypeMap.get(AsTest3)).toBeDefined();
-        expect(__TypeMap.get(AsTest3).length).toBe(1);
-        expect(__TypeMap.get(AsTest3)[0].serializedKey).toBe('z');
-        expect(__TypeMap.get(AsTest3)[0].serializedType).toBe(null);
-        expect(__TypeMap.get(AsTest3)[0].deserializedKey).toBe('z');
-        expect(__TypeMap.get(AsTest3)[0].deserializedType).toBe(null);
+        expect(MetaData.TypeMap.get(AsTest3)).toBeDefined();
+        expect(MetaData.TypeMap.get(AsTest3).length).toBe(1);
+        expect(MetaData.TypeMap.get(AsTest3)[0].serializedKey).toBe('z');
+        expect(MetaData.TypeMap.get(AsTest3)[0].serializedType).toBe(null);
+        expect(MetaData.TypeMap.get(AsTest3)[0].deserializedKey).toBe('z');
+        expect(MetaData.TypeMap.get(AsTest3)[0].deserializedType).toBe(null);
     });
 
     it('should create meta data with a different key and type', function () {
-        expect(__TypeMap.get(AsTest2)).toBeDefined();
-        expect(__TypeMap.get(AsTest2).length).toBe(1);
-        expect(__TypeMap.get(AsTest2)[0].serializedKey).toBe('VECTOR');
-        expect(__TypeMap.get(AsTest2)[0].serializedType).toBe(Vector2);
-        expect(__TypeMap.get(AsTest2)[0].deserializedKey).toBe('VECTOR');
-        expect(__TypeMap.get(AsTest2)[0].deserializedType).toBe(Vector2);
+        expect(MetaData.TypeMap.get(AsTest2)).toBeDefined();
+        expect(MetaData.TypeMap.get(AsTest2).length).toBe(1);
+        expect(MetaData.TypeMap.get(AsTest2)[0].serializedKey).toBe('VECTOR');
+        expect(MetaData.TypeMap.get(AsTest2)[0].serializedType).toBe(Vector2);
+        expect(MetaData.TypeMap.get(AsTest2)[0].deserializedKey).toBe('VECTOR');
+        expect(MetaData.TypeMap.get(AsTest2)[0].deserializedType).toBe(Vector2);
     });
 
     it("handles strings", function() {
         
     })
 });
-/* [Weichx 12/9/15] credit to @garkin for contributing the rest of this file */
-// ES6 Set stub
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
-// https://github.com/cloud9ide/typescript/blob/master/typings/lib.d.ts
+
 interface Set<T> {
     add(value: T): Set<T>;
     clear(): void;
@@ -80,6 +79,7 @@ interface Set<T> {
     has(value: T): boolean;
     size: number;
 }
+
 declare var Set: {
     new <T>(data?: T[]): Set<T>;
 };
@@ -112,7 +112,7 @@ describe('autoserializeAs using Serializer', () => {
         };
 
         class TestClass {
-            @autoserializeAs(Serializer) children: Set<number> = new Set();
+            @autoserializeUsing(Serializer) children: Set<number> = new Set();
         }
 
         it("will be serialized", () => {
@@ -129,12 +129,12 @@ describe('autoserializeAs using Serializer', () => {
             expect(Utility.unpackSet(result.children)).toEqual(JSON.children.wrap);
         });
 
-        it("will be deserializedInto", () => {
-            const result = DeserializeInto(JSON, TestClass, new TestClass());
-            expect(result instanceof TestClass).toBeTruthy();
-            expect(result.children instanceof Set).toBeTruthy();
-            expect(Utility.unpackSet(result.children)).toEqual(JSON.children.wrap);
-        });
+        // it("will be deserializedInto", () => {
+        //     const result = DeserializeInto(JSON, TestClass, new TestClass());
+        //     expect(result instanceof TestClass).toBeTruthy();
+        //     expect(result.children instanceof Set).toBeTruthy();
+        //     expect(Utility.unpackSet(result.children)).toEqual(JSON.children.wrap);
+       // });
 
     });
 
@@ -176,7 +176,7 @@ describe('autoserializeAs using Serializer', () => {
         };
 
         class TestClass {
-            @autoserializeAs(Serializer) children: Set<number> = new Set();
+            @autoserializeUsing(Serializer) children: Set<number> = new Set();
         }
 
         it("will be serialized", () => {
@@ -193,12 +193,12 @@ describe('autoserializeAs using Serializer', () => {
             expect(Utility.unpackSet(result.children)).toEqual(JSON.children);
         });
 
-        it("will be deserializedInto", () => {
-            const result = DeserializeInto(JSON, TestClass, new TestClass());
-            expect(result instanceof TestClass).toBeTruthy();
-            expect(result.children instanceof Set).toBeTruthy();
-            expect(Utility.unpackSet(result.children)).toEqual(JSON.children);
-        });
+        // it("will be deserializedInto", () => {
+        //     const result = DeserializeInto(JSON, TestClass, new TestClass());
+        //     expect(result instanceof TestClass).toBeTruthy();
+        //     expect(result.children instanceof Set).toBeTruthy();
+        //     expect(Utility.unpackSet(result.children)).toEqual(JSON.children);
+        // });
 
     });
 

@@ -251,7 +251,7 @@ describe('DeserializeInto', function () {
         expect(result.children[3].x).toEqual("4");
     });
 
-    it("Should deserialize indexable object", function () {
+    it("Should deserialize isMap object", function () {
 
         class Y {
             @deserialize thing : string;

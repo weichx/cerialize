@@ -1,8 +1,8 @@
 ///<reference path="./typings/jasmine.d.ts"/>
 import {
-    deserialize, deserializeAs, Deserialize, GenericDeserialize,
-    GenericDeserializeInto, deserializeIndexable
-} from '../src/serialize';
+  deserialize, deserializeAs, Deserialize, DeserializeArray
+} from "../src/index";
+import { deserializeAsIndexable, deserializeUsing } from "../src/annotations";
 
 class T1 {
     public x : number;
@@ -60,16 +60,12 @@ var DeserializerFn = function(src : any) : any {
     return 'custom!';
 };
 
-var Deserializer = {
-    Deserialize: DeserializerFn
-};
-
 class CustomDeserializeTest {
-    @deserializeAs(Deserializer) public x : string;
+    @deserializeUsing(DeserializerFn) public x : string;
 }
 
 class CustomDeserializeTest2 {
-    @deserializeAs(DeserializerFn) public x : string;
+    @deserializeUsing(DeserializerFn) public x : string;
 }
 
 describe('Deserialize', function () {
@@ -92,7 +88,7 @@ describe('Deserialize', function () {
 
     it('should deserialize an array', function () {
         var json = [{ x: 1, y: 1 }, { x: 2, y: 2 }];
-        var list = Deserialize(json, T2);
+        var list = DeserializeArray(json, T2);
         expect(Array.isArray(list));
         expect(list.length).toBe(2);
         expect(list[0] instanceof T2).toBe(true);
@@ -103,18 +99,18 @@ describe('Deserialize', function () {
         expect(list[1].y).toBe(2);
     });
 
-    it('should deserialize a primitive', function () {
-        expect(Deserialize(1)).toBe(1);
-        expect(Deserialize(null)).toBe(null);
-        expect(Deserialize(false)).toBe(false);
-        expect(Deserialize(true)).toBe(true);
-        expect(Deserialize('1')).toBe('1');
-    });
+    // it('should deserialize a primitive', function () {
+    //     expect(Deserialize(1)).toBe(1);
+    //     expect(Deserialize(null)).toBe(null);
+    //     expect(Deserialize(false)).toBe(false);
+    //     expect(Deserialize(true)).toBe(true);
+    //     expect(Deserialize('1')).toBe('1');
+    // });
 
     it('should deserialize a date', function () {
         var d = new Date();
         var dateStr = d.toString();
-        var result = Deserialize(dateStr, Date);
+        var result = Deserialize(dateStr as any, Date);
         expect(result instanceof Date).toBe(true);
     });
 
@@ -218,6 +214,7 @@ describe('Deserialize', function () {
         };
 
         var test : Test = Deserialize(json, Test);
+        debugger;
         expect(Array.isArray(test.arrayOfString)).toBe(true);
         expect(test.arrayOfString[0]).toBe("String1");
         expect(test.arrayOfString[1]).toBe("String2");
@@ -348,14 +345,14 @@ describe('Deserialize', function () {
         expect(deserialized2.trees[1].trees[1].fruits).toBeUndefined(); /* t4 has no fruits */
     });
 
-    it("Should deserialize indexable object", function () {
+    it("Should deserialize isMap object", function () {
 
         class Y {
             @deserialize thing : string;
         }
 
         class X {
-            @deserializeIndexable(Y) yMap : any;
+            @deserializeAsIndexable(Y) yMap : any;
         }
 
         var map : any = {
@@ -372,24 +369,24 @@ describe('Deserialize', function () {
 
 });
 
-describe('Deserialize generics', function () {
-
-    it('should handle a generic deserialize', function () {
-        var tree = GenericDeserialize({value: "someValue"}, Tree);
-        expect((tree instanceof  Tree)).toBe(true);
-        expect(tree.value).toBe("someValue");
-    });
-
-    it('should handle a generic deserializeInto', function () {
-        var tree = new Tree();
-        tree.value = 'hello';
-        var tree2 = GenericDeserializeInto({value: "someValue"}, Tree, tree);
-        expect((tree2 instanceof  Tree)).toBe(true);
-        expect(tree2).toBe(tree);
-        expect(tree.value).toBe("someValue");
-    });
-
-});
+// describe('Deserialize generics', function () {
+//
+//     it('should handle a generic deserialize', function () {
+//         var tree = GenericDeserialize({value: "someValue"}, Tree);
+//         expect((tree instanceof  Tree)).toBe(true);
+//         expect(tree.value).toBe("someValue");
+//     });
+//
+//     it('should handle a generic deserializeInto', function () {
+//         var tree = new Tree();
+//         tree.value = 'hello';
+//         var tree2 = GenericDeserializeInto({value: "someValue"}, Tree, tree);
+//         expect((tree2 instanceof  Tree)).toBe(true);
+//         expect(tree2).toBe(tree);
+//         expect(tree.value).toBe("someValue");
+//     });
+//
+// });
 
 //rest of file contributed by @1ambda
 export interface NoParamConstructor<T> {
@@ -402,7 +399,7 @@ export abstract class Deserializable {
     }
 
     public static deserializeArray<T>(ctor: NoParamConstructor<T>, json : any): Array<T> {
-        return Deserialize(json, ctor);
+        return DeserializeArray(json, ctor);
     }
 }
 
