@@ -214,7 +214,7 @@ Sometimes you want to define a function to do the serializing for you and not re
 
 ```
 const MoneySerializer = {
-    Serializer(json : any) : any { 
+    Serialize(json : any) : any { 
         return { amount: value, currency: "EUR" };
     },
     Deserialize(json : any) : any {
