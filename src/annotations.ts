@@ -96,7 +96,7 @@ export function deserializeAsMap(type : SerializableType<any>, keyName? : string
 export function deserializeAsJson(keyNameOrTransformKeys? : boolean | string, transformKeys = true) {
   return function (target : IConstructable, actualKeyName : string) : void {
     const metadata = MetaData.getMetaData(target.constructor, actualKeyName);
-    metadata.serializedKey = (typeof keyNameOrTransformKeys === "string") ? keyNameOrTransformKeys : actualKeyName;
+    metadata.deserializedKey = (typeof keyNameOrTransformKeys === "string") ? keyNameOrTransformKeys : actualKeyName;
     metadata.flags |= (MetaDataFlag.DeserializeJSON);
     const shouldTransformKeys = typeof keyNameOrTransformKeys === "boolean" ? keyNameOrTransformKeys : transformKeys;
     metadata.flags = setBitConditionally(

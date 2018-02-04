@@ -59,7 +59,7 @@ export class MetaData {
     if (this.deserializedKey === this.keyName) {
       return MetaData.deserializeKeyTransform(this.keyName);
     }
-    return this.deserializedKey ? this.deserializedKey : this.keyName;
+    return MetaData.deserializeKeyTransform(this.deserializedKey ? this.deserializedKey : this.keyName);
   }
 
   //checks for a key name in a meta data array
