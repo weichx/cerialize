@@ -7,7 +7,10 @@ export function SerializeMap<T>(source : T, type : SerializableType<T>) : Indexa
 
     for (var i = 0; i < keys.length; i++) {
         const key = keys[i];
-        target[MetaData.serializeKeyTransform(key)] = Serialize((source as any)[key], type);
+        const value = (source as any)[key];
+        if(value !== void 0) {
+          target[MetaData.serializeKeyTransform(key)] = Serialize(value, type);
+        }
     }
 
     return target;
@@ -68,8 +71,11 @@ export function SerializeJSON(source : any, transformKeys = true) : JsonType {
             const keys = Object.keys(source);
             for (var i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const retnKey = transformKeys ? MetaData.serializeKeyTransform(key) : key;
-                retn[retnKey] = SerializeJSON(source[key], transformKeys);
+                const value = source[key];
+                if(value !== void 0) {
+                  const retnKey = transformKeys ? MetaData.serializeKeyTransform(key) : key;
+                  retn[retnKey] = SerializeJSON(value, transformKeys);
+                }
             }
             return retn;
         }

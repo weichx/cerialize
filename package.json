@@ -22,9 +22,9 @@
   "devDependencies": {
     "jest": "^22.1.4",
     "ts-jest": "^22.0.2",
-    "typescript": "^2.7.1"
+    "typescript": "^2.7.1",
+    "@types/jest": "^22.1.1"
   },
-  "dependencies": {},
   "jest": {
     "testRegex": "/spec/.*\\.spec\\.([tj]sx?)$",
     "transform": {
@@ -32,7 +32,12 @@
     },
     "moduleFileExtensions": [
       "ts",
-      "tsx"
+      "tsx",
+      "js",
+      "jsx"
     ]
+  },
+  "dependencies": {
+    "tslib": "^1.9.0"
   }
 }

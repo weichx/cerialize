@@ -1,4 +1,4 @@
-import { getTarget, Indexable, JsonType, SerializablePrimitiveType, SerializableType } from "./util";
+import { getTarget, Indexable, isPrimitiveType, JsonType, SerializablePrimitiveType, SerializableType } from "./util";
 import { MetaData, MetaDataFlag } from "./meta_data";
 
 export function DeserializeMap<T>(data : any, type : SerializableType<T>, target? : Indexable<T>, createInstances = true) : Indexable<T> {
@@ -9,10 +9,17 @@ export function DeserializeMap<T>(data : any, type : SerializableType<T>, target
 
   if (target === null || target === void  0) target = {};
 
+  if (data === null || data === void 0) {
+    return null;
+  }
+
   const keys = Object.keys(data);
   for (var i = 0; i < keys.length; i++) {
     const key = keys[i];
-    target[MetaData.deserializeKeyTransform(key)] = Deserialize(data[key], type, target[key], createInstances) as T;
+    const value = data[key];
+    if (value !== void 0) {
+      target[MetaData.deserializeKeyTransform(key)] = Deserialize(data[key], type, target[key], createInstances) as T;
+    }
   }
 
   return target;
@@ -46,12 +53,15 @@ function DeserializePrimitive(data : any, type : SerializablePrimitiveType, targ
     }
   }
   else if (type === RegExp) {
-    return new RegExp(data as string);
+    const fragments = data.match(/\/(.*?)\/([gimy])?$/);
+    return new RegExp(fragments[1], fragments[2] || "");
+  }
+  else if (data === null) {
+    return null;
   }
   else {
     return (type as any)(data);
   }
-  // if anything else -- return null or maybe throw an error
 }
 
 export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKeys = true, target? : JsonType) : JsonType {
@@ -79,8 +89,11 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
     const keys = Object.keys(data as object);
     for (var i = 0; i < keys.length; i++) {
       const key = keys[i];
-      const retnKey = transformKeys ? MetaData.deserializeKeyTransform(key) : key;
-      retn[retnKey] = DeserializeJSON((data as Indexable<JsonType>)[key], transformKeys);
+      const value = (data as Indexable<JsonType>)[key];
+      if(value !== void 0) {
+        const retnKey = transformKeys ? MetaData.deserializeKeyTransform(key) : key;
+        retn[retnKey] = DeserializeJSON((data as Indexable<JsonType>)[key], transformKeys);
+      }
     }
     return retn;
 
@@ -92,11 +105,22 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
   return data;
 }
 
-export function Deserialize<T extends Indexable>(data : any, type : SerializableType<T>, target? : T, createInstances = true) : T|null {
+export function Deserialize<T extends Indexable>(data : any, type : SerializableType<T>, target? : T, createInstances = true) : T | null {
 
   const metadataList = MetaData.getMetaDataForType(type);
 
   if (metadataList === null) {
+    if (typeof type === "function") {
+      if (isPrimitiveType(type)) {
+        return DeserializePrimitive(data, type as any, target as any);
+      }
+      else if (createInstances) {
+        return new (type as any)();
+      }
+      else {
+        return {} as T;
+      }
+    }
     return null;
   }
 
@@ -114,17 +138,17 @@ export function Deserialize<T extends Indexable>(data : any, type : Serializable
     const keyName = metadata.keyName;
     const flags = metadata.flags;
 
-    if ((flags & MetaDataFlag.DeserializePrimitive) !== 0) {
-      target[keyName] = DeserializePrimitive(source, metadata.deserializedType as SerializablePrimitiveType, target[keyName]);
-    }
-    else if ((flags & MetaDataFlag.DeserializeObject) !== 0) {
-      target[keyName] = Deserialize(source, metadata.deserializedType, target[keyName], createInstances);
-    }
-    else if ((flags & MetaDataFlag.DeserializeMap) !== 0) {
+    if ((flags & MetaDataFlag.DeserializeMap) !== 0) {
       target[keyName] = DeserializeMap(source, metadata.deserializedType, target[keyName], createInstances);
     }
     else if ((flags & MetaDataFlag.DeserializeArray) !== 0) {
       target[keyName] = DeserializeArray(source, metadata.deserializedType, target[keyName], createInstances);
+    }
+    else if ((flags & MetaDataFlag.DeserializePrimitive) !== 0) {
+      target[keyName] = DeserializePrimitive(source, metadata.deserializedType as SerializablePrimitiveType, target[keyName]);
+    }
+    else if ((flags & MetaDataFlag.DeserializeObject) !== 0) {
+      target[keyName] = Deserialize(source, metadata.deserializedType, target[keyName], createInstances);
     }
     else if ((flags & MetaDataFlag.DeserializeJSON) !== 0) {
       target[keyName] = DeserializeJSON(source, (flags & MetaDataFlag.DeserializeJSONTransformKeys) !== 0, createInstances);
@@ -135,10 +159,9 @@ export function Deserialize<T extends Indexable>(data : any, type : Serializable
 
   }
 
-  const ctor = (target.constructor as any) as { onDeserialized : (data : any, target : T, createInstances : boolean) => void };
-
-  if (ctor && typeof ctor.onDeserialized === "function") {
-    ctor.onDeserialized(data, target, createInstances);
+  if (typeof type.onDeserialized === "function") {
+    const value = type.onDeserialized(data, target, createInstances);
+    if (value !== void 0) return value as any;
   }
 
   return target as T;

@@ -29,8 +29,8 @@ export interface Indexable<T = any|null> {
 export interface SerializableType<T> {
     new (...args : any[]) : T;
 
-    onSerialized? : (data : JsonObject, instance : T) => JsonObject;
-    onDeserialized? : (data : JsonObject, instance : T, createInstances? : boolean) => T;
+    onSerialized? : (data : JsonObject, instance : T) => JsonObject|void;
+    onDeserialized? : (data : JsonObject, instance : T, createInstances? : boolean) => T|void;
 }
 
 /** @internal */

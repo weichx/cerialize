@@ -5,3 +5,4 @@ spec/spec
 spec/src
 .gulp***
 gulp-**
+coverage

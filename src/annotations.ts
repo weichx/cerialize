@@ -93,6 +93,21 @@ export function deserializeAsMap(type : SerializableType<any>, keyName? : string
     };
 }
 
+export function deserializeAsJson(keyNameOrTransformKeys? : boolean | string, transformKeys = true) {
+  return function (target : IConstructable, actualKeyName : string) : void {
+    const metadata = MetaData.getMetaData(target.constructor, actualKeyName);
+    metadata.serializedKey = (typeof keyNameOrTransformKeys === "string") ? keyNameOrTransformKeys : actualKeyName;
+    metadata.flags |= (MetaDataFlag.DeserializeJSON);
+    const shouldTransformKeys = typeof keyNameOrTransformKeys === "boolean" ? keyNameOrTransformKeys : transformKeys;
+    metadata.flags = setBitConditionally(
+      metadata.flags,
+      MetaDataFlag.DeserializeJSONTransformKeys,
+      shouldTransformKeys
+    );
+  };
+}
+
+
 export function autoserializeUsing(serializer : ISerializer<any>, keyName? : string) {
     return function (target : IConstructable, actualKeyName : string) : void {
         const metadata = MetaData.getMetaData(target.constructor, actualKeyName);

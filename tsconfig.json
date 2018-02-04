@@ -4,15 +4,17 @@
     "noImplicitAny": true,
     "outDir": "./dist/",
     "preserveConstEnums": false,
-    "removeComments": false,
+    "removeComments": true,
     "target": "es6",
     "module": "es6",
     "stripInternal": true,
-    "strict": true,
+    "strictNullChecks": false,
     "experimentalDecorators": true,
     "importHelpers": false,
+    "noEmitHelpers": false,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "moduleResolution": "node"
   },
   "exclude": [
     "node_modules",
