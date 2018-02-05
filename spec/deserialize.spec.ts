@@ -817,7 +817,7 @@ describe("Deserializing", function () {
 
                     }
 
-                    const json = {
+                    const json : any = {
                         things: [],
                         fn: function () {}
                     };

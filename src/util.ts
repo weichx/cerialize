@@ -12,7 +12,7 @@ export type SerializablePrimitiveType =
 
 
 export interface JsonObject {
-    [idx : string] : JsonType;
+    [idx : string] : JsonType|JsonObject;
 }
 
 export interface JsonArray extends Array<JsonType> {}
