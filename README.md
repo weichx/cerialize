@@ -230,7 +230,30 @@ It is also possible to re-use existing objects when deserializing with `Deserial
 
 #### Deserializing Into Plain Objects
 
-The `createInstances` parameter can be used to toggle between creating actual instances of the input type, or when false the `deserializeXXX` functions will return a plain object instead. This can be useful for systems like Redux which expect / require plain objects and not class instances. 
+The `createInstances` parameter can be used to change the way in which instances of the input type are created. With `Instances.Construct`, the constructor will be invoked when a new instance needs to be created. With `Instances.Create`, the object will be created without invoking its constructor, which is useful for systems where constructed objects immediately freeze themselves. With `Instances.Plain`, the `deserializeXXX` functions will return a plain object instead, which can be useful for systems like Redux that expect / require plain objects and not class instances.
+
+```typescript
+	import {Deserialize, Instances} from 'cerialize';
+	
+	class Immutable {
+	
+		public value : string;
+		
+		constructor(value : string) {
+			this.value = value;
+			Object.freeze(this);
+		}
+		
+		public getValue() : string {
+			return value;
+		}
+		
+	}
+	
+	Deserialize({value: 'example'}, Immutable, Instances.Construct); // Error because of Object.freeze
+	Deserialize({value: 'example'}, Immutable, Instances.Create);    // Immutable {value 'example'}
+	Deserialize({value: 'example'}, Immutable, Instances.Plain);     // Object {value: 'example'}
+```
 
 ##### Functions
 - `Deserialize<T>(json : JsonObject, ClassConstructor<T>, target? : T) : T`
@@ -361,7 +384,7 @@ A callback can be provided for when a class is deserialized. To define the callb
         @autoserializeAs(String) firstName;
         @autoserializeAs(String) lastName;
 
-        static onDeserialized(instance : CrewMember, json : JsonObject, createInstances : boolean) {
+        static onDeserialized(instance : CrewMember, json : JsonObject, createInstances : Instances) {
             instance.firstName = json.firstName.toLowerCase();
             instance.lastName = json.lastName.toLowerCase();
         }
