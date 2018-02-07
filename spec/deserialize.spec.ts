@@ -1014,9 +1014,9 @@ describe("Deserializing", function () {
 
     });
 
-	describe("Instances Creation", function () {
+	describe("InstantiationMethod", function () {
 
-		it("Construct", function () {
+		it("New", function () {
 
 			class Test {
 
@@ -1036,7 +1036,7 @@ describe("Deserializing", function () {
 
 		});
 
-		it("Create", function () {
+		it("ObjectCreate", function () {
 
 			class Test {
 
@@ -1054,7 +1054,7 @@ describe("Deserializing", function () {
 
 		});
 
-		it("Plain", function () {
+		it("None", function () {
 
 			class Test {
 			}
