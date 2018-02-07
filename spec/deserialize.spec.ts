@@ -1014,4 +1014,57 @@ describe("Deserializing", function () {
 
     });
 
+	describe("Instances Creation", function () {
+
+		it("Construct", function () {
+
+			class Test {
+
+				constructed : boolean = false;
+
+				constructor() {
+					this.constructed = true;
+				}
+
+			}
+
+			const json = {};
+			const instance = Deserialize(json, Test, null, Instances.Construct);
+			expect(instance).toEqual({
+				constructed: true
+			});
+
+		});
+
+		it("Create", function () {
+
+			class Test {
+
+				constructed : boolean;
+
+				constructor() {
+					this.constructed = true;
+				}
+
+			}
+
+			const json = {};
+			const instance = Deserialize(json, Test, null, Instances.Create);
+			expect(instance.constructed).toBeUndefined();
+
+		});
+
+		it("Plain", function () {
+
+			class Test {
+			}
+
+			const json = {};
+			const instance = Deserialize(json, Test, null, Instances.Plain);
+			expect(typeof instance).toEqual('object');
+			expect(instance instanceof Test).toEqual(false);
+		});
+
+	});
+
 });
