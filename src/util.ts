@@ -10,6 +10,11 @@ export type SerializablePrimitiveType =
     RegExpConstructor |
     StringConstructor;
 
+export enum Instances {
+	Plain = 0,
+	Construct = 1,
+	Create = 2
+}
 
 export interface JsonObject {
     [idx : string] : JsonType|JsonObject;
@@ -30,16 +35,23 @@ export interface SerializableType<T> {
     new (...args : any[]) : T;
 
     onSerialized? : (data : JsonObject, instance : T) => JsonObject|void;
-    onDeserialized? : (data : JsonObject, instance : T, createInstances? : boolean) => T|void;
+    onDeserialized? : (data : JsonObject, instance : T, createInstances? : Instances) => T|void;
 }
 
+
 /** @internal */
-export function getTarget<T>(type : SerializableType<T>, target : T, createInstances : boolean) : T {
+export function getTarget<T>(type : SerializableType<T>, target : T, createInstances : Instances) : T {
 
     if (target !== null && target !== void 0) return target;
 
-    if (type !== null && createInstances) {
-        return new type();
+    if (type !== null) {
+        switch (createInstances) {
+            case Instances.Construct:
+            	return new type();
+
+			case Instances.Create:
+				return Object.create(type.prototype);
+        }
     }
 
     return {} as T;
