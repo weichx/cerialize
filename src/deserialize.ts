@@ -17,7 +17,7 @@ export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>,
   }
 
   const keys = Object.keys(data);
-  for (var i = 0; i < keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     const value = data[key];
     if (value !== void 0) {
@@ -37,7 +37,7 @@ export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>
   if (!Array.isArray(target)) target = [] as Array<T>;
 
   target.length = data.length;
-  for (var i = 0; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     target[i] = Deserialize(data[i] as any, type, target[i], createInstances) as T;
   }
 
@@ -77,7 +77,7 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
 
     (target as Array<JsonType>).length = data.length;
 
-    for (var i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       (target as Array<JsonType>)[i] = DeserializeJSON(data[i], transformKeys, (target as Array<JsonType>)[i]);
     }
 
@@ -90,7 +90,7 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
 
     const retn = (target && typeof target === "object" ? target : {}) as Indexable<JsonType>;
     const keys = Object.keys(data as object);
-    for (var i = 0; i < keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       const value = (data as Indexable<JsonType>)[key];
       if(value !== void 0) {
@@ -135,7 +135,7 @@ export function Deserialize<T extends Indexable>(data : JsonObject, type : Seria
 
   target = getTarget(type as any, target, createInstances) as T;
 
-  for (var i = 0; i < metadataList.length; i++) {
+  for (let i = 0; i < metadataList.length; i++) {
     const metadata = metadataList[i];
 
     if (metadata.deserializedKey === null) continue;
