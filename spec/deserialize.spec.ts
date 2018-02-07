@@ -11,28 +11,38 @@ import {
     deserializeAsMap,
     deserializeUsing, SetDeserializeKeyTransform
 } from "../src";
-import {Indexable, JsonObject} from "../src/util";
+import {Instances, Indexable, JsonObject} from "../src/util";
 
-function expectInstance(instance : any, type : any, createInstances : boolean) {
-    if (createInstances) {
-        expect(instance instanceof type).toBe(true);
-    }
-    else {
-        expect(instance instanceof type).toBeFalsy();
-        expect(instance.toString()).toBe("[object Object]");
-    }
+function expectInstance(instance : any, type : any, createInstances : Instances) {
+    switch (createInstances) {
+		case Instances.Construct:
+		case Instances.Create:
+			expect(instance instanceof type).toBe(true);
+			break;
+
+		case Instances.Plain:
+			expect(instance instanceof type).toBeFalsy();
+			expect(instance.toString()).toBe("[object Object]");
+			break;
+	}
 }
 
 function expectTarget(target : any, instance : any, shouldMakeTarget : boolean) {
     expect(instance === target).toBe(shouldMakeTarget);
 }
 
-function createTarget(shouldMakeTarget : boolean, shouldCreateInstances : boolean, type : any) {
-    if (shouldMakeTarget) {
-        return shouldCreateInstances ? new type() : {};
-    }
-    else {
-        return null;
+function createTarget(shouldMakeTarget : boolean, shouldCreateInstances : Instances, type : any) {
+    if (!shouldMakeTarget) return null;
+
+    switch (shouldCreateInstances) {
+        case Instances.Construct:
+            return new type();
+
+        case Instances.Create:
+            return Object.create(type.prototype);
+
+        case Instances.Plain:
+            return {};
     }
 }
 
@@ -56,7 +66,7 @@ describe("Deserializing", function () {
 
     describe("DeserializeAs", function () {
 
-        function runTests(blockName : string, createInstances : boolean, deserializeAs : any, makeTarget : boolean) {
+        function runTests(blockName : string, createInstances : Instances, deserializeAs : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -284,20 +294,20 @@ describe("Deserializing", function () {
 
         }
 
-        runTests("Normal > Create Instances > With Target", true, deserializeAs, true);
-        runTests("Normal > Create Instances > Without Target", true, deserializeAs, false);
-        runTests("Normal > No Instances > With Target", false, deserializeAs, true);
-        runTests("Normal > No Instances > Without Target", false, deserializeAs, false);
-        runTests("Auto > Create Instances > With Target", true, autoserializeAs, true);
-        runTests("Auto > Create Instances > Without Target", true, autoserializeAs, false);
-        runTests("Auto > No Instances > With Target", false, autoserializeAs, true);
-        runTests("Auto > No Instances > Without Target", false, autoserializeAs, false);
+        runTests("Normal > Create Instances > With Target", Instances.Construct, deserializeAs, true);
+        runTests("Normal > Create Instances > Without Target", Instances.Construct, deserializeAs, false);
+        runTests("Normal > No Instances > With Target", Instances.Plain, deserializeAs, true);
+        runTests("Normal > No Instances > Without Target", Instances.Plain, deserializeAs, false);
+        runTests("Auto > Create Instances > With Target", Instances.Construct, autoserializeAs, true);
+        runTests("Auto > Create Instances > Without Target", Instances.Construct, autoserializeAs, false);
+        runTests("Auto > No Instances > With Target", Instances.Plain, autoserializeAs, true);
+        runTests("Auto > No Instances > Without Target", Instances.Plain, autoserializeAs, false);
 
     });
 
     describe("DeserializeAsMap", function () {
 
-        function runTests(blockName : string, createInstances : boolean, deserializeAs : any, deserializeAsMap : any, makeTarget : boolean) {
+        function runTests(blockName : string, createInstances : Instances, deserializeAs : any, deserializeAsMap : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -461,20 +471,20 @@ describe("Deserializing", function () {
 
         }
 
-        runTests("Normal > Create Instances > With Target", true, deserializeAs, deserializeAsMap, true);
-        runTests("Normal > Create Instances > Without Target", true, deserializeAs, deserializeAsMap, false);
-        runTests("Normal > No Instances > With Target", false, deserializeAs, deserializeAsMap, true);
-        runTests("Normal > No Instances > Without Target", false, deserializeAs, deserializeAsMap, false);
-        runTests("Auto > Create Instances > With Target", true, autoserializeAs, autoserializeAsMap, true);
-        runTests("Auto > Create Instances > Without Target", true, autoserializeAs, autoserializeAsMap, false);
-        runTests("Auto > No Instances > With Target", false, autoserializeAs, autoserializeAsMap, true);
-        runTests("Auto > No Instances > Without Target", false, autoserializeAs, autoserializeAsMap, false);
+        runTests("Normal > Create Instances > With Target", Instances.Construct, deserializeAs, deserializeAsMap, true);
+        runTests("Normal > Create Instances > Without Target", Instances.Construct, deserializeAs, deserializeAsMap, false);
+        runTests("Normal > No Instances > With Target", Instances.Plain, deserializeAs, deserializeAsMap, true);
+        runTests("Normal > No Instances > Without Target", Instances.Plain, deserializeAs, deserializeAsMap, false);
+        runTests("Auto > Create Instances > With Target", Instances.Construct, autoserializeAs, autoserializeAsMap, true);
+        runTests("Auto > Create Instances > Without Target", Instances.Construct, autoserializeAs, autoserializeAsMap, false);
+        runTests("Auto > No Instances > With Target", Instances.Plain, autoserializeAs, autoserializeAsMap, true);
+        runTests("Auto > No Instances > Without Target", Instances.Plain, autoserializeAs, autoserializeAsMap, false);
 
     });
 
     describe("DeserializeAsArray", function () {
 
-        function runTests(blockName : string, createInstances : boolean, deserializeAs : any, deserializeAsArray : any, makeTarget : boolean) {
+        function runTests(blockName : string, createInstances : Instances, deserializeAs : any, deserializeAsArray : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -631,20 +641,20 @@ describe("Deserializing", function () {
 
         }
 
-        runTests("Normal > Create Instances > With Target", true, deserializeAs, deserializeAsArray, true);
-        runTests("Normal > Create Instances > Without Target", true, deserializeAs, deserializeAsArray, false);
-        runTests("Normal > No Instances > With Target", false, deserializeAs, deserializeAsArray, true);
-        runTests("Normal > No Instances > Without Target", false, deserializeAs, deserializeAsArray, false);
-        runTests("Auto > Create Instances > With Target", true, autoserializeAs, autoserializeAsArray, true);
-        runTests("Auto > Create Instances > Without Target", true, autoserializeAs, autoserializeAsArray, false);
-        runTests("Auto > No Instances > With Target", false, autoserializeAs, autoserializeAsArray, true);
-        runTests("Auto > No Instances > Without Target", false, autoserializeAs, autoserializeAsArray, false);
+        runTests("Normal > Create Instances > With Target", Instances.Construct, deserializeAs, deserializeAsArray, true);
+        runTests("Normal > Create Instances > Without Target", Instances.Construct, deserializeAs, deserializeAsArray, false);
+        runTests("Normal > No Instances > With Target", Instances.Plain, deserializeAs, deserializeAsArray, true);
+        runTests("Normal > No Instances > Without Target", Instances.Plain, deserializeAs, deserializeAsArray, false);
+        runTests("Auto > Create Instances > With Target", Instances.Construct, autoserializeAs, autoserializeAsArray, true);
+        runTests("Auto > Create Instances > Without Target", Instances.Construct, autoserializeAs, autoserializeAsArray, false);
+        runTests("Auto > No Instances > With Target", Instances.Plain, autoserializeAs, autoserializeAsArray, true);
+        runTests("Auto > No Instances > Without Target", Instances.Plain, autoserializeAs, autoserializeAsArray, false);
 
     });
 
     describe("DeserializeJSON", function () {
 
-        function runTests(blockName : string, createInstances : boolean, deserializeAs : any, deserializeAsJson : any, makeTarget : boolean) {
+        function runTests(blockName : string, createInstances : Instances, deserializeAs : any, deserializeAsJson : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -909,20 +919,20 @@ describe("Deserializing", function () {
             });
         }
 
-        runTests("Normal > Create Instances > With Target", true, deserializeAs, deserializeAsJson, true);
-        runTests("Normal > Create Instances > Without Target", true, deserializeAs, deserializeAsJson, false);
-        runTests("Normal > No Instances > With Target", false, deserializeAs, deserializeAsJson, true);
-        runTests("Normal > No Instances > Without Target", false, deserializeAs, deserializeAsJson, false);
-        runTests("Auto > Create Instances > With Target", true, autoserializeAs, autoserializeAsJson, true);
-        runTests("Auto > Create Instances > Without Target", true, autoserializeAs, autoserializeAsJson, false);
-        runTests("Auto > No Instances > With Target", false, autoserializeAs, autoserializeAsJson, true);
-        runTests("Auto > No Instances > Without Target", false, autoserializeAs, autoserializeAsJson, false);
+        runTests("Normal > Create Instances > With Target", Instances.Construct, deserializeAs, deserializeAsJson, true);
+        runTests("Normal > Create Instances > Without Target", Instances.Construct, deserializeAs, deserializeAsJson, false);
+        runTests("Normal > No Instances > With Target", Instances.Plain, deserializeAs, deserializeAsJson, true);
+        runTests("Normal > No Instances > Without Target", Instances.Plain, deserializeAs, deserializeAsJson, false);
+        runTests("Auto > Create Instances > With Target", Instances.Construct, autoserializeAs, autoserializeAsJson, true);
+        runTests("Auto > Create Instances > Without Target", Instances.Construct, autoserializeAs, autoserializeAsJson, false);
+        runTests("Auto > No Instances > With Target", Instances.Plain, autoserializeAs, autoserializeAsJson, true);
+        runTests("Auto > No Instances > Without Target", Instances.Plain, autoserializeAs, autoserializeAsJson, false);
 
     });
 
     describe("DeserializeUsing", function () {
 
-        function runTests(blockName : string, createInstances : boolean, deserializeAs : any, deserializeUsing : any, makeTarget : boolean) {
+        function runTests(blockName : string, createInstances : Instances, deserializeAs : any, deserializeUsing : any, makeTarget : boolean) {
 
             it("uses the provided function", function () {
                 function x(value : any) { return 1; }
@@ -947,10 +957,10 @@ describe("Deserializing", function () {
 
         }
 
-        runTests("Normal > Create Instances > With Target", true, deserializeAs, deserializeUsing, true);
-        runTests("Normal > Create Instances > Without Target", true, deserializeAs, deserializeUsing, false);
-        runTests("Normal > No Instances > With Target", false, deserializeAs, deserializeUsing, true);
-        runTests("Normal > No Instances > Without Target", false, deserializeAs, deserializeUsing, false);
+        runTests("Normal > Create Instances > With Target", Instances.Construct, deserializeAs, deserializeUsing, true);
+        runTests("Normal > Create Instances > Without Target", Instances.Construct, deserializeAs, deserializeUsing, false);
+        runTests("Normal > No Instances > With Target", Instances.Plain, deserializeAs, deserializeUsing, true);
+        runTests("Normal > No Instances > Without Target", Instances.Plain, deserializeAs, deserializeUsing, false);
 
     });
 
@@ -970,7 +980,7 @@ describe("Deserializing", function () {
             }
 
             const json = { value: 100 };
-            const instance = Deserialize(json, Test, null, true);
+            const instance = Deserialize(json, Test, null, Instances.Construct);
             expect(instance).toEqual({
                 something: "here",
                 value: 100
@@ -995,7 +1005,7 @@ describe("Deserializing", function () {
             }
 
             const json = { value: 100 };
-            const instance = Deserialize(json, Test, null, true);
+            const instance = Deserialize(json, Test, null, Instances.Construct);
             expect(instance).toEqual({
                 something: "here",
                 value: 300
