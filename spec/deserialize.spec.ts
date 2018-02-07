@@ -13,8 +13,8 @@ import {
 }                                                   from "../src";
 import {InstantiationMethod, Indexable, JsonObject} from "../src/util";
 
-function expectInstance(instance : any, type : any, createInstances : InstantiationMethod) {
-    switch (createInstances) {
+function expectInstance(instance : any, type : any, instantiationMethod : InstantiationMethod) {
+    switch (instantiationMethod) {
 		case InstantiationMethod.New:
 		case InstantiationMethod.ObjectCreate:
 			expect(instance instanceof type).toBe(true);
@@ -31,10 +31,10 @@ function expectTarget(target : any, instance : any, shouldMakeTarget : boolean) 
     expect(instance === target).toBe(shouldMakeTarget);
 }
 
-function createTarget(shouldMakeTarget : boolean, shouldCreateInstances : InstantiationMethod, type : any) {
+function createTarget(shouldMakeTarget : boolean, shouldinstantiationMethod : InstantiationMethod, type : any) {
     if (!shouldMakeTarget) return null;
 
-    switch (shouldCreateInstances) {
+    switch (shouldinstantiationMethod) {
         case InstantiationMethod.New:
             return new type();
 
@@ -66,7 +66,7 @@ describe("Deserializing", function () {
 
     describe("DeserializeAs", function () {
 
-        function runTests(blockName : string, createInstances : InstantiationMethod, deserializeAs : any, makeTarget : boolean) {
+        function runTests(blockName : string, instantiationMethod : InstantiationMethod, deserializeAs : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -78,17 +78,17 @@ describe("Deserializing", function () {
                         @deserializeAs(Number) value2 : number = 100;
                     }
 
-                    const target = createTarget(makeTarget, createInstances, Test);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
                     const instance = Deserialize({
                         value0: "strvalue1",
                         value1: false,
                         value2: 101
-                    }, Test, target, createInstances);
+                    }, Test, target, instantiationMethod);
                     expect(instance.value0).toBe("strvalue1");
                     expect(instance.value1).toBe(false);
                     expect(instance.value2).toBe(101);
                     expectTarget(instance, target, makeTarget);
-                    expectInstance(instance, Test, createInstances);
+                    expectInstance(instance, Test, instantiationMethod);
 
                 });
 
@@ -98,12 +98,12 @@ describe("Deserializing", function () {
                     }
 
                     const d = new Date().toString();
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize({ value0: d }, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize({ value0: d }, Test, target, instantiationMethod);
                     expect(instance.value0 instanceof Date).toBe(true);
                     expect(instance.value0.toString()).toBe(d);
                     expectTarget(target, instance, makeTarget);
-                    expectInstance(instance, Test, createInstances);
+                    expectInstance(instance, Test, instantiationMethod);
                 });
 
                 it("deserializes a RegExp", function () {
@@ -112,12 +112,12 @@ describe("Deserializing", function () {
                     }
 
                     const d = (new RegExp("/[123]/g")).toString();
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize({ value0: d }, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize({ value0: d }, Test, target, instantiationMethod);
                     expect(instance.value0 instanceof RegExp).toBe(true);
                     expect(instance.value0.toString()).toBe(d);
                     expectTarget(instance, target, makeTarget);
-                    expectInstance(instance, Test, createInstances);
+                    expectInstance(instance, Test, instantiationMethod);
 
                 });
 
@@ -130,16 +130,16 @@ describe("Deserializing", function () {
                         @deserializeAs(Thing) thing : Thing;
                     }
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    if (target) target.thing = createTarget(makeTarget, createInstances, Thing);
-                    const instance = Deserialize({ thing: { value: 2 } }, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    if (target) target.thing = createTarget(makeTarget, instantiationMethod, Thing);
+                    const instance = Deserialize({ thing: { value: 2 } }, Test, target, instantiationMethod);
                     expect(instance.thing.value).toBe(2);
                     expectTarget(target, instance, makeTarget);
                     if (target) {
                         expectTarget(target.thing, instance.thing, makeTarget);
                     }
-                    expectInstance(instance.thing, Thing, createInstances);
-                    expectInstance(instance, Test, createInstances);
+                    expectInstance(instance.thing, Thing, instantiationMethod);
+                    expectInstance(instance, Test, instantiationMethod);
                 });
 
                 it("deserializes non matching primitive types", function () {
@@ -154,8 +154,8 @@ describe("Deserializing", function () {
                         value1: true,
                         value2: "100"
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.value0).toBe(100);
                     expect(instance.value1).toBe("true");
                     expect(instance.value2).toBe(true);
@@ -174,8 +174,8 @@ describe("Deserializing", function () {
                         bool: true,
                         num: 100
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.value0).toBe("strval");
                     expect(instance.value1).toBe(true);
                     expect(instance.value2).toBe(100);
@@ -194,9 +194,9 @@ describe("Deserializing", function () {
                         value1: true,
                         value2: 100
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
-                    if (createInstances) {
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
+                    if (instantiationMethod) {
                         expect(instance.value0).toBe("val");
                     }
                     else {
@@ -218,8 +218,8 @@ describe("Deserializing", function () {
                         value1: true,
                         value2: 100
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.value0).toBe(null);
                     expect(instance.value1).toBe(true);
                     expect(instance.value2).toBe(100);
@@ -241,11 +241,11 @@ describe("Deserializing", function () {
                     const json = {
                         test: { value0: "str", value1: true, value2: 100 }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test0);
-                    if (target) target.test = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test0, target, createInstances);
-                    expectInstance(instance.test, Test, createInstances);
-                    if (target) expectInstance(target.test, Test, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test0);
+                    if (target) target.test = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test0, target, instantiationMethod);
+                    expectInstance(instance.test, Test, instantiationMethod);
+                    if (target) expectInstance(target.test, Test, instantiationMethod);
                     expect(instance.test.value0).toBe("str");
                     expect(instance.test.value1).toBe(true);
                     expect(instance.test.value2).toBe(100);
@@ -270,16 +270,16 @@ describe("Deserializing", function () {
                         test1: { test0: { value0: "str", value1: true, value2: 100 } }
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test2);
+                    const target = createTarget(makeTarget, instantiationMethod, Test2);
                     if (target) {
-                        target.test1 = createTarget(makeTarget, createInstances, Test1);
+                        target.test1 = createTarget(makeTarget, instantiationMethod, Test1);
                         if (target.test1) {
-                            target.test1.test0 = createTarget(makeTarget, createInstances, Test0);
+                            target.test1.test0 = createTarget(makeTarget, instantiationMethod, Test0);
                         }
                     }
-                    const instance = Deserialize(json, Test2, target, createInstances);
-                    expectInstance(instance.test1, Test1, createInstances);
-                    expectInstance(instance.test1.test0, Test0, createInstances);
+                    const instance = Deserialize(json, Test2, target, instantiationMethod);
+                    expectInstance(instance.test1, Test1, instantiationMethod);
+                    expectInstance(instance.test1.test0, Test0, instantiationMethod);
                     if (target) {
                         expectTarget(target, instance, makeTarget);
                         expectTarget(target.test1, instance.test1, makeTarget);
@@ -307,7 +307,7 @@ describe("Deserializing", function () {
 
     describe("DeserializeAsMap", function () {
 
-        function runTests(blockName : string, createInstances : InstantiationMethod, deserializeAs : any, deserializeAsMap : any, makeTarget : boolean) {
+        function runTests(blockName : string, instantiationMethod : InstantiationMethod, deserializeAs : any, deserializeAsMap : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -318,10 +318,10 @@ describe("Deserializing", function () {
                     }
 
                     const json = { values: { v0: 0, v1: 1, v2: 2 } };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.values).toEqual({ v0: 0, v1: 1, v2: 2 });
-                    expectInstance(instance, Test, createInstances);
+                    expectInstance(instance, Test, instantiationMethod);
                     expectTarget(target, instance, makeTarget);
 
                 });
@@ -347,8 +347,8 @@ describe("Deserializing", function () {
                         }
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.values.v0).toEqual({ value: 1 });
                     expect(instance.values.v1).toEqual({ value: 2 });
                     expect(instance.values.v2).toEqual({ value: 3 });
@@ -374,8 +374,8 @@ describe("Deserializing", function () {
                             v2: { value: { v20: 3, v21: 2 } }
                         }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.values).toEqual({
                         v0: { value: { v00: 1, v01: 2 } },
                         v1: { value: { v10: 2, v11: 2 } },
@@ -395,8 +395,8 @@ describe("Deserializing", function () {
                             v2: 2
                         }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         values: {
                             v1: 1,
@@ -421,8 +421,8 @@ describe("Deserializing", function () {
                     const json = {
                         different: { v0: { value: 1 }, v1: { value: 2 } }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.values).toEqual({
                         v0: { value: 1 }, v1: { value: 2 }
                     });
@@ -436,20 +436,20 @@ describe("Deserializing", function () {
 
                     expect(function () {
                         const json = { values: 1 };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be of type `object` but received: number");
 
                     expect(function () {
                         const json = { values: false };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be of type `object` but received: boolean");
 
                     expect(function () {
                         const json = { values: "str" };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be of type `object` but received: string");
 
                 });
@@ -461,8 +461,8 @@ describe("Deserializing", function () {
                     }
 
                     const json : any = { values: null };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance.values).toBeNull();
 
                 });
@@ -484,7 +484,7 @@ describe("Deserializing", function () {
 
     describe("DeserializeAsArray", function () {
 
-        function runTests(blockName : string, createInstances : InstantiationMethod, deserializeAs : any, deserializeAsArray : any, makeTarget : boolean) {
+        function runTests(blockName : string, instantiationMethod : InstantiationMethod, deserializeAs : any, deserializeAsArray : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -494,11 +494,11 @@ describe("Deserializing", function () {
                     }
 
                     const json = { value: [1, 2, 3] };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(Array.isArray(instance.value)).toBeTruthy();
                     expect(instance.value).toEqual([1, 2, 3]);
-                    expectInstance(instance, Test, createInstances);
+                    expectInstance(instance, Test, instantiationMethod);
                     expectTarget(target, instance, makeTarget);
                 });
 
@@ -523,16 +523,16 @@ describe("Deserializing", function () {
                         ]
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
-                    expectInstance(instance, Test, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
+                    expectInstance(instance, Test, instantiationMethod);
                     expectTarget(target, instance, makeTarget);
                     expect(instance.value).toEqual([
                         { strVal: "0" },
                         { strVal: "1" },
                         { strVal: "2" }
                     ]);
-                    if (createInstances) {
+                    if (instantiationMethod) {
                         expect(instance.value[0] instanceof TestType).toBeTruthy();
                         expect(instance.value[1] instanceof TestType).toBeTruthy();
                         expect(instance.value[2] instanceof TestType).toBeTruthy();
@@ -577,10 +577,10 @@ describe("Deserializing", function () {
                         new TestTypeL1([new TestTypeL0("20"), new TestTypeL0("21")])
                     ];
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({ value: array });
-                    if (createInstances) {
+                    if (instantiationMethod) {
                         expect(instance.value[0] instanceof TestTypeL1).toBeTruthy();
                         expect(instance.value[1] instanceof TestTypeL1).toBeTruthy();
                         expect(instance.value[2] instanceof TestTypeL1).toBeTruthy();
@@ -596,9 +596,9 @@ describe("Deserializing", function () {
 
                     const json = { different: [1, 2, 3] };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
-                    expectInstance(instance, Test, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
+                    expectInstance(instance, Test, instantiationMethod);
                     expectTarget(target, instance, makeTarget);
                     expect(instance).toEqual({
                         value: [1, 2, 3]
@@ -613,26 +613,26 @@ describe("Deserializing", function () {
 
                     expect(function () {
                         const json = { values: 1 };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be an array but received: number");
 
                     expect(function () {
                         const json = { values: false };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be an array but received: boolean");
 
                     expect(function () {
                         const json = { values: "str" };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be an array but received: string");
 
                     expect(function () {
                         const json = { values: {} };
-                        const target = createTarget(makeTarget, createInstances, Test);
-                        const instance = Deserialize(json, Test, target, createInstances);
+                        const target = createTarget(makeTarget, instantiationMethod, Test);
+                        const instance = Deserialize(json, Test, target, instantiationMethod);
                     }).toThrow("Expected input to be an array but received: object");
 
                 });
@@ -654,7 +654,7 @@ describe("Deserializing", function () {
 
     describe("DeserializeJSON", function () {
 
-        function runTests(blockName : string, createInstances : InstantiationMethod, deserializeAs : any, deserializeAsJson : any, makeTarget : boolean) {
+        function runTests(blockName : string, instantiationMethod : InstantiationMethod, deserializeAs : any, deserializeAsJson : any, makeTarget : boolean) {
 
             describe(blockName, function () {
 
@@ -672,8 +672,8 @@ describe("Deserializing", function () {
                         value2: 1
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         value0: "strval",
                         value1: true,
@@ -695,8 +695,8 @@ describe("Deserializing", function () {
                         value1: [false, true],
                         value2: 100
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         value0: ["strvalue", "00"],
                         value1: [false, true],
@@ -718,8 +718,8 @@ describe("Deserializing", function () {
                         }
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         value: {
                             v0: 1,
@@ -743,8 +743,8 @@ describe("Deserializing", function () {
                             { x: 3, y: 1 },
                         ]
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         things: [
                             { x: 1, y: 3 },
@@ -765,8 +765,8 @@ describe("Deserializing", function () {
                             x: 1, y: 2, z: 3
                         }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         things: { x: 1, y: 2, z: 3 }
                     });
@@ -786,8 +786,8 @@ describe("Deserializing", function () {
                             v2: { x: 3, y: 1 },
                         }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         things: {
                             v0: { x: 1, y: 3 },
@@ -810,8 +810,8 @@ describe("Deserializing", function () {
                             [4, 5, 6]
                         ]
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         things: [
                             [1, 2, 3],
@@ -831,8 +831,8 @@ describe("Deserializing", function () {
                         things: [],
                         fn: function () {}
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         things: []
                     });
@@ -851,8 +851,8 @@ describe("Deserializing", function () {
                             x: 1, y: 2, z: 3
                         }
                     };
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     expect(instance).toEqual({
                         things: { x: 1, y: 2, z: 3 }
                     });
@@ -875,8 +875,8 @@ describe("Deserializing", function () {
                         VALUE2: 100
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     SetDeserializeKeyTransform(null);
                     expect(instance).toEqual({
                         value0: "strvalue",
@@ -902,8 +902,8 @@ describe("Deserializing", function () {
                         VALUE2: 100
                     };
 
-                    const target = createTarget(makeTarget, createInstances, Test);
-                    const instance = Deserialize(json, Test, target, createInstances);
+                    const target = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test, target, instantiationMethod);
                     SetDeserializeKeyTransform(null);
                     expect(instance).toEqual({
                         value0: "strvalue",
@@ -932,7 +932,7 @@ describe("Deserializing", function () {
 
     describe("DeserializeUsing", function () {
 
-        function runTests(blockName : string, createInstances : InstantiationMethod, deserializeAs : any, deserializeUsing : any, makeTarget : boolean) {
+        function runTests(blockName : string, instantiationMethod : InstantiationMethod, deserializeAs : any, deserializeUsing : any, makeTarget : boolean) {
 
             it("uses the provided function", function () {
                 function x(value : any) { return 1; }
@@ -947,10 +947,10 @@ describe("Deserializing", function () {
                     value1: "hello"
                 };
 
-                const target = createTarget(makeTarget, createInstances, Test);
-                const instance = Deserialize(json, Test, target, createInstances);
+                const target = createTarget(makeTarget, instantiationMethod, Test);
+                const instance = Deserialize(json, Test, target, instantiationMethod);
                 expectTarget(target, instance, makeTarget);
-                expectInstance(instance, Test, createInstances);
+                expectInstance(instance, Test, instantiationMethod);
                 expect(instance).toEqual({ value: 1, value1: 1 });
 
             });

@@ -1,6 +1,6 @@
 export type JsonType = null | string | number | boolean | JsonObject | JsonArray;
 export type Serializer<T> = (target : T) => JsonType;
-export type Deserializer<T> = (data : JsonType, target? : T, createInstances? : boolean) => T;
+export type Deserializer<T> = (data : JsonType, target? : T, instantiationMethod? : boolean) => T;
 export type IConstructable = { constructor : Function };
 export type SerializeFn = <T>(data : T) => JsonType;
 export type SerializablePrimitiveType =
@@ -35,17 +35,17 @@ export interface SerializableType<T> {
     new (...args : any[]) : T;
 
     onSerialized? : (data : JsonObject, instance : T) => JsonObject|void;
-    onDeserialized? : (data : JsonObject, instance : T, createInstances? : InstantiationMethod) => T|void;
+    onDeserialized? : (data : JsonObject, instance : T, instantiationMethod? : InstantiationMethod) => T|void;
 }
 
 
 /** @internal */
-export function getTarget<T>(type : SerializableType<T>, target : T, createInstances : InstantiationMethod) : T {
+export function getTarget<T>(type : SerializableType<T>, target : T, instantiationMethod : InstantiationMethod) : T {
 
     if (target !== null && target !== void 0) return target;
 
     if (type !== null) {
-        switch (createInstances) {
+        switch (instantiationMethod) {
             case InstantiationMethod.New:
             	return new type();
 

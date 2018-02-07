@@ -4,7 +4,7 @@ import {
 } from "./util";
 import { MetaData, MetaDataFlag } from "./meta_data";
 
-export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>, target? : Indexable<T>, createInstances : InstantiationMethod = InstantiationMethod.New) : Indexable<T> {
+export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>, target? : Indexable<T>, instantiationMethod : InstantiationMethod = InstantiationMethod.New) : Indexable<T> {
 
   if (typeof data !== "object") {
     throw new Error("Expected input to be of type `object` but received: " + typeof data);
@@ -21,14 +21,14 @@ export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>,
     const key = keys[i];
     const value = data[key];
     if (value !== void 0) {
-      target[MetaData.deserializeKeyTransform(key)] = Deserialize(data[key] as any, type, target[key], createInstances) as T;
+      target[MetaData.deserializeKeyTransform(key)] = Deserialize(data[key] as any, type, target[key], instantiationMethod) as T;
     }
   }
 
   return target;
 }
 
-export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>, createInstances : InstantiationMethod = InstantiationMethod.New) {
+export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>, instantiationMethod : InstantiationMethod = InstantiationMethod.New) {
 
   if (!Array.isArray(data)) {
     throw new Error("Expected input to be an array but received: " + typeof data);
@@ -38,7 +38,7 @@ export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>
 
   target.length = data.length;
   for (let i = 0; i < data.length; i++) {
-    target[i] = Deserialize(data[i] as any, type, target[i], createInstances) as T;
+    target[i] = Deserialize(data[i] as any, type, target[i], instantiationMethod) as T;
   }
 
   return target;
@@ -108,7 +108,7 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
   return data;
 }
 
-export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, createInstances : InstantiationMethod = InstantiationMethod.New) : T | null {
+export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, instantiationMethod : InstantiationMethod = InstantiationMethod.New) : T | null {
 
   const metadataList = MetaData.getMetaDataForType(type);
 
@@ -118,7 +118,7 @@ export function Deserialize<T extends Indexable>(data : JsonObject, type : Seria
         return DeserializePrimitive(data, type as any, target as any);
       }
 
-      switch (createInstances) {
+      switch (instantiationMethod) {
         case InstantiationMethod.New:
           return new type();
 
@@ -133,7 +133,7 @@ export function Deserialize<T extends Indexable>(data : JsonObject, type : Seria
     return null;
   }
 
-  target = getTarget(type as any, target, createInstances) as T;
+  target = getTarget(type as any, target, instantiationMethod) as T;
 
   for (let i = 0; i < metadataList.length; i++) {
     const metadata = metadataList[i];
@@ -148,28 +148,28 @@ export function Deserialize<T extends Indexable>(data : JsonObject, type : Seria
     const flags = metadata.flags;
 
     if ((flags & MetaDataFlag.DeserializeMap) !== 0) {
-      target[keyName] = DeserializeMap(source, metadata.deserializedType, target[keyName], createInstances);
+      target[keyName] = DeserializeMap(source, metadata.deserializedType, target[keyName], instantiationMethod);
     }
     else if ((flags & MetaDataFlag.DeserializeArray) !== 0) {
-      target[keyName] = DeserializeArray(source, metadata.deserializedType, target[keyName], createInstances);
+      target[keyName] = DeserializeArray(source, metadata.deserializedType, target[keyName], instantiationMethod);
     }
     else if ((flags & MetaDataFlag.DeserializePrimitive) !== 0) {
       target[keyName] = DeserializePrimitive(source, metadata.deserializedType as SerializablePrimitiveType, target[keyName]);
     }
     else if ((flags & MetaDataFlag.DeserializeObject) !== 0) {
-      target[keyName] = Deserialize(source, metadata.deserializedType, target[keyName], createInstances);
+      target[keyName] = Deserialize(source, metadata.deserializedType, target[keyName], instantiationMethod);
     }
     else if ((flags & MetaDataFlag.DeserializeJSON) !== 0) {
-      target[keyName] = DeserializeJSON(source, (flags & MetaDataFlag.DeserializeJSONTransformKeys) !== 0, createInstances);
+      target[keyName] = DeserializeJSON(source, (flags & MetaDataFlag.DeserializeJSONTransformKeys) !== 0, instantiationMethod);
     }
     else if ((flags & MetaDataFlag.DeserializeUsing) !== 0) {
-      target[keyName] = (metadata.deserializedType as any)(source, target[keyName], createInstances);
+      target[keyName] = (metadata.deserializedType as any)(source, target[keyName], instantiationMethod);
     }
 
   }
 
   if (typeof type.onDeserialized === "function") {
-    const value = type.onDeserialized(data, target, createInstances);
+    const value = type.onDeserialized(data, target, instantiationMethod);
     if (value !== void 0) return value as any;
   }
 
