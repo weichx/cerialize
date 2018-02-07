@@ -5,7 +5,7 @@ export function SerializeMap<T>(source : T, type : SerializableType<T>) : Indexa
     const target : Indexable<JsonType> = {};
     const keys = Object.keys(source);
 
-    for (var i = 0; i < keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         const value = (source as any)[key];
         if(value !== void 0) {
@@ -18,7 +18,7 @@ export function SerializeMap<T>(source : T, type : SerializableType<T>) : Indexa
 
 export function SerializeArray<T>(source : Array<T>, type : SerializableType<T>) : Array<JsonType> {
     const retn = new Array<JsonType>(source.length);
-    for (var i = 0; i < source.length; i++) {
+    for (let i = 0; i < source.length; i++) {
         retn[i] = Serialize(source[i], type);
     }
     return retn;
@@ -53,7 +53,7 @@ export function SerializeJSON(source : any, transformKeys = true) : JsonType {
 
     if (Array.isArray(source)) {
         const array = new Array<any>(source.length);
-        for (var i = 0; i < source.length; i++) {
+        for (let i = 0; i < source.length; i++) {
             array[i] = SerializeJSON(source[i], transformKeys);
         }
         return array;
@@ -69,7 +69,7 @@ export function SerializeJSON(source : any, transformKeys = true) : JsonType {
         else {
             const retn : Indexable<JsonType> = {};
             const keys = Object.keys(source);
-            for (var i = 0; i < keys.length; i++) {
+            for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
                 const value = source[key];
                 if(value !== void 0) {
@@ -108,7 +108,7 @@ export function Serialize<T>(instance : T, type : SerializableType<T>) : JsonObj
 
     const target : Indexable<JsonType> = {};
 
-    for (var i = 0; i < metadataList.length; i++) {
+    for (let i = 0; i < metadataList.length; i++) {
         const metadata = metadataList[i];
 
         if (metadata.serializedKey === null) continue;
