@@ -1,10 +1,10 @@
 import {
   getTarget, Indexable, isPrimitiveType, JsonArray, JsonObject, JsonType, SerializablePrimitiveType,
-  SerializableType, Instances
+  SerializableType, InstantiationMethod
 } from "./util";
 import { MetaData, MetaDataFlag } from "./meta_data";
 
-export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>, target? : Indexable<T>, createInstances : Instances = Instances.Construct) : Indexable<T> {
+export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>, target? : Indexable<T>, createInstances : InstantiationMethod = InstantiationMethod.New) : Indexable<T> {
 
   if (typeof data !== "object") {
     throw new Error("Expected input to be of type `object` but received: " + typeof data);
@@ -28,7 +28,7 @@ export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>,
   return target;
 }
 
-export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>, createInstances : Instances = Instances.Construct) {
+export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>, createInstances : InstantiationMethod = InstantiationMethod.New) {
 
   if (!Array.isArray(data)) {
     throw new Error("Expected input to be an array but received: " + typeof data);
@@ -108,7 +108,7 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
   return data;
 }
 
-export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, createInstances : Instances = Instances.Construct) : T | null {
+export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, createInstances : InstantiationMethod = InstantiationMethod.New) : T | null {
 
   const metadataList = MetaData.getMetaDataForType(type);
 
@@ -119,10 +119,10 @@ export function Deserialize<T extends Indexable>(data : JsonObject, type : Seria
       }
 
       switch (createInstances) {
-        case Instances.Construct:
+        case InstantiationMethod.New:
           return new type();
 
-        case Instances.Create:
+        case InstantiationMethod.ObjectCreate:
           return Object.create(type.prototype);
 
         default:
@@ -177,13 +177,13 @@ export function Deserialize<T extends Indexable>(data : JsonObject, type : Seria
 }
 
 export function DeserializeRaw<T>(data : JsonObject, type : SerializableType<T>, target? : T) : T | null {
-  return Deserialize(data, type, target, Instances.Plain);
+  return Deserialize(data, type, target, InstantiationMethod.None);
 }
 
 export function DeserializeArrayRaw<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>) : Array<T> | null {
-  return DeserializeArray(data, type, target, Instances.Plain);
+  return DeserializeArray(data, type, target, InstantiationMethod.None);
 }
 
 export function DeserializeMapRaw<T>(data : Indexable<JsonType>, type : SerializableType<T>, target? : Indexable<T>) : Indexable<T> | null {
-  return DeserializeMap(data, type, target, Instances.Plain);
+  return DeserializeMap(data, type, target, InstantiationMethod.None);
 }

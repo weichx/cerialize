@@ -230,7 +230,7 @@ It is also possible to re-use existing objects when deserializing with `Deserial
 
 #### Deserializing Into Plain Objects
 
-The `createInstances` parameter can be used to change the way in which instances of the input type are created. With `Instances.Construct`, the constructor will be invoked when a new instance needs to be created. With `Instances.Create`, the object will be created without invoking its constructor, which is useful for systems where constructed objects immediately freeze themselves. With `Instances.Plain`, the `deserializeXXX` functions will return a plain object instead, which can be useful for systems like Redux that expect / require plain objects and not class instances.
+The `createInstances` parameter can be used to change the way in which instances of the input type are created. With `InstantiationMethod.New`, the constructor will be invoked when a new instance needs to be created. With `InstantiationMethod.ObjectCreate`, the object will be created without invoking its constructor, which is useful for systems where constructed objects immediately freeze themselves. With `InstantiationMethod.None`, the `deserializeXXX` functions will return a plain object instead, which can be useful for systems like Redux that expect / require plain objects and not class instances.
 
 ```typescript
 	import {Deserialize, Instances} from 'cerialize';
@@ -250,9 +250,9 @@ The `createInstances` parameter can be used to change the way in which instances
 		
 	}
 	
-	Deserialize({value: 'example'}, Immutable, Instances.Construct); // Error because of Object.freeze
-	Deserialize({value: 'example'}, Immutable, Instances.Create);    // Immutable {value 'example'}
-	Deserialize({value: 'example'}, Immutable, Instances.Plain);     // Object {value: 'example'}
+	Deserialize({value: 'example'}, Immutable, InstantiationMethod.New);          // Error because of Object.freeze
+	Deserialize({value: 'example'}, Immutable, InstantiationMethod.ObjectCreate); // Immutable {value 'example'}
+	Deserialize({value: 'example'}, Immutable, InstantiationMethod.None);         // Object {value: 'example'}
 ```
 
 ##### Functions
