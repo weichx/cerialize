@@ -4,7 +4,8 @@ import {
 } from "./util";
 import { MetaData, MetaDataFlag } from "./meta_data";
 
-export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>, target? : Indexable<T>, instantiationMethod : InstantiationMethod = InstantiationMethod.New) : Indexable<T> {
+export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>, target? : Indexable<T>, instantiationMethod? : InstantiationMethod) : Indexable<T> {
+  if (instantiationMethod === void 0) instantiationMethod = MetaData.deserializeInstantationMethod;
 
   if (typeof data !== "object") {
     throw new Error("Expected input to be of type `object` but received: " + typeof data);
@@ -28,7 +29,8 @@ export function DeserializeMap<T>(data : JsonObject, type : SerializableType<T>,
   return target;
 }
 
-export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>, instantiationMethod : InstantiationMethod = InstantiationMethod.New) {
+export function DeserializeArray<T>(data : JsonArray, type : SerializableType<T>, target? : Array<T>, instantiationMethod? : InstantiationMethod) {
+  if (instantiationMethod === void 0) instantiationMethod = MetaData.deserializeInstantationMethod;
 
   if (!Array.isArray(data)) {
     throw new Error("Expected input to be an array but received: " + typeof data);
@@ -108,8 +110,8 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
   return data;
 }
 
-export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, instantiationMethod : InstantiationMethod = InstantiationMethod.New) : T | null {
-
+export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, instantiationMethod? : InstantiationMethod) : T | null {
+  if (instantiationMethod === void 0) instantiationMethod = MetaData.deserializeInstantationMethod;
   const metadataList = MetaData.getMetaDataForType(type);
 
   if (metadataList === null) {

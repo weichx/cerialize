@@ -9,7 +9,8 @@ import {
     deserializeAsArray,
     deserializeAsJson,
     deserializeAsMap,
-    deserializeUsing, SetDeserializeKeyTransform
+    deserializeUsing, SetDeserializeKeyTransform,
+    SetDefaultInstantiationMethod
 }                                                   from "../src";
 import {InstantiationMethod, Indexable, JsonObject} from "../src/util";
 
@@ -1061,6 +1062,21 @@ describe("Deserializing", function () {
 
 			const json = {};
 			const instance = Deserialize(json, Test, null, InstantiationMethod.None);
+			expect(typeof instance).toEqual('object');
+			expect(instance instanceof Test).toEqual(false);
+		});
+
+		it("SetDefaultInstantiationMethod", function () {
+			SetDefaultInstantiationMethod(InstantiationMethod.None);
+
+			class Test {
+			}
+
+			const json = {};
+			const instance = Deserialize(json, Test, null, InstantiationMethod.None);
+
+			SetDefaultInstantiationMethod(null); // Reset.
+
 			expect(typeof instance).toEqual('object');
 			expect(instance instanceof Test).toEqual(false);
 		});

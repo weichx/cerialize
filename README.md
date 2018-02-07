@@ -255,6 +255,8 @@ The `instantiationMethod` parameter can be used to change the way in which insta
 	Deserialize({value: 'example'}, Immutable, InstantiationMethod.None);         // Object {value: 'example'}
 ```
 
+The default InstantiationMethod can be changed with `SetDefaultInstantiationMethod(instantiationMethod : InstantiationMethod)`
+
 ##### Functions
 - `Deserialize<T>(json : JsonObject, ClassConstructor<T>, target? : T) : T`
     ```typescript

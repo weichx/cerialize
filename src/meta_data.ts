@@ -2,7 +2,7 @@
 //in a type tagged with a serialization annotation will contain an array of these
 //objects each describing one property
 
-import { IConstructable, SerializableType } from "./util";
+import { IConstructable, SerializableType, InstantiationMethod } from "./util";
 import { NoOp } from "./string_transforms";
 
 const TypeMap = new Map<any, Array<MetaData>>();
@@ -125,5 +125,7 @@ export class MetaData {
   public static serializeKeyTransform = NoOp;
 
   public static deserializeKeyTransform = NoOp;
+
+  public static deserializeInstantationMethod = InstantiationMethod.New;
 
 }
