@@ -1,6 +1,6 @@
 export type JsonType = null | string | number | boolean | JsonObject | JsonArray;
 export type Serializer<T> = (target : T) => JsonType;
-export type Deserializer<T> = (data : JsonType, target? : T, instantiationMethod? : boolean) => T;
+export type Deserializer<T> = (data : JsonType, target? : T, instantiationMethod? : InstantiationMethod) => T;
 export type IConstructable = { constructor : Function };
 export type SerializeFn = <T>(data : T) => JsonType;
 export type SerializablePrimitiveType =
