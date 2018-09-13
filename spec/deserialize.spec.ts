@@ -252,6 +252,26 @@ describe("Deserializing", function () {
                     expect(instance.test.value2).toBe(100);
                 });
 
+                it("deserializes nullable nested types", function () {
+                    class Test {
+                        @deserializeAs(String) value0 : string = "bad";
+                        @deserializeAs(Boolean) value1 : boolean = false;
+                        @deserializeAs(Number) value2 : number = 1;
+                    }
+
+                    class Test0 {
+                        @deserializeAs(Test) test : Test;
+                    }
+
+                    const json = {
+                        test: null
+                    };
+                    const target = createTarget(makeTarget, instantiationMethod, Test0);
+                    if (target) target.test = createTarget(makeTarget, instantiationMethod, Test);
+                    const instance = Deserialize(json, Test0, target, instantiationMethod);
+                    expect(instance.test).toBeNull();
+                });
+
                 it("deserializes doubly nested types", function () {
                     class Test0 {
                         @deserializeAs(String) value0 : string = "bad";
