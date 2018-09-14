@@ -121,6 +121,8 @@ export function DeserializeJSON<T extends JsonType>(data : JsonType, transformKe
 }
 
 function _Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, instantiationMethod? : InstantiationMethod) : T | null {
+  if (data === null) { return null; }
+
   const metadataList = MetaData.getMetaDataForType(type);
 
   if (metadataList === null) {
