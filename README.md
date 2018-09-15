@@ -387,8 +387,8 @@ A callback can be provided for when a class is deserialized. To define the callb
         @autoserializeAs(String) lastName;
 
         static onDeserialized(data : JsonObject, instance : CrewMember, instantiationMethod : InstantiationMethod) {
-            instance.firstName = json.firstName.toLowerCase();
-            instance.lastName = json.lastName.toLowerCase();
+            instance.firstName = data.firstName.toLowerCase();
+            instance.lastName = data.lastName.toLowerCase();
         }
 
     }
