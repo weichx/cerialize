@@ -378,7 +378,7 @@ A callback can be provided for when a class is serialized. To define the callbac
 ```
 
 ## onDeserialized Callback
-A callback can be provided for when a class is deserialized. To define the callback, add a static method `onDeserialized<T>(instance : T, json : JsonObject, instantiationMethod = InstantationMethod.New)` to the class that needs custom post processing. You can either return a new value from this function, or modify the `json` parameter. The `instantiationMethod` parameter signifies whether the initial call to deserialize this object should create instances of the types (when true) or just plain objects (when false)
+A callback can be provided for when a class is deserialized. To define the callback, add a static method `onDeserialized<T>(data : JsonObject, instance : T, instantiationMethod = InstantationMethod.New)` to the class that needs custom post processing. You can either return a new value from this function, or modify the `instance` parameter. The `instantiationMethod` parameter signifies whether the initial call to deserialize this object should create instances of the types (when true) or just plain objects (when false)
 
 ```typescript 
     class CrewMember {
@@ -386,9 +386,9 @@ A callback can be provided for when a class is deserialized. To define the callb
         @autoserializeAs(String) firstName;
         @autoserializeAs(String) lastName;
 
-        static onDeserialized(instance : CrewMember, json : JsonObject, instantiationMethod : InstantiationMethod) {
-            instance.firstName = json.firstName.toLowerCase();
-            instance.lastName = json.lastName.toLowerCase();
+        static onDeserialized(data : JsonObject, instance : CrewMember, instantiationMethod : InstantiationMethod) {
+            instance.firstName = data.firstName.toLowerCase();
+            instance.lastName = data.lastName.toLowerCase();
         }
 
     }
