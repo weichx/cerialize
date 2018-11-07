@@ -189,7 +189,7 @@ function _Deserialize<T extends Indexable>(data : JsonObject, type : Serializabl
   return target as T;
 }
 
-export function Deserialize<T extends Indexable>(data : JsonObject, type : SerializableType<T>, target? : T, instantiationMethod? : InstantiationMethod) : T | null {
+export function Deserialize<T>(data : JsonObject, type : SerializableType<T>, target? : T, instantiationMethod? : InstantiationMethod) : T | null {
   if (instantiationMethod === void 0) {
     instantiationMethod = MetaData.deserializeInstantationMethod;
   }

@@ -15,6 +15,8 @@
   "version": "2.0.0",
   "main": "dist/index.js",
   "scripts": {
+    "install": "tsc",
+    "build": "tsc",
     "test": "jest",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
   },
